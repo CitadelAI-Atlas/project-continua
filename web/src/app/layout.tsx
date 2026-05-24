@@ -32,6 +32,9 @@ function Nav() {
           <a href="/dashboards" className="hover:text-blue-600 dark:hover:text-blue-400">
             Dashboards
           </a>
+          <a href="/research" className="hover:text-blue-600 dark:hover:text-blue-400">
+            Research
+          </a>
           <a href="/about" className="hover:text-blue-600 dark:hover:text-blue-400">
             About
           </a>

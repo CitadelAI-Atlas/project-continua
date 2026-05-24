@@ -1,0 +1,67 @@
+export const metadata = {
+  title: "v4: receiver-derivable vocabulary | Project Continua",
+};
+
+# v4: receiver-derivable vocabulary
+
+**Period:** May 2026 (iterations v4.0 through v4.3)
+**Status:** complete; established the math-native vocabulary the project still uses
+
+## The step v4 contributed
+
+Earlier rounds proved the encoder side could be math-native (integer
+ratios, harmonic structure, periodic timing), but the decoder side still
+required the spec. v4 reframed the project around the stronger constraint:
+every primitive's meaning must be derivable from the audio's observable
+mathematical structure by a fresh receiver with only mathematics and
+acoustic physics.
+
+The vocabulary shrank from twenty primitives to the irreducible set: nine
+candidates that pass the derivability test. Across iterations v4.0 through
+v4.3 each primitive was iteratively refined when initial renderings produced
+ambiguous derivations, and the multi-instance ostensive-definition technique
+was introduced to handle abstract relations like "greater than."
+
+## Headline finding
+
+Abstract mathematical relations can be made receiver-derivable from audio
+alone by presenting multiple examples and letting the receiver derive the
+common factor across them. This is exactly how mathematicians teach abstract
+operators: "1 < 2 and 2 < 3 and 5 < 10, what's the common pattern?" The
+technique generalized beyond the v4 primitives and became the project's
+most reusable methodological contribution.
+
+## The nine v4 primitives
+
+| Primitive | Meaning | Audio realization |
+|---|---|---|
+| `COUNT(N)` | the integer N | N pulses at a constant frequency |
+| `RATIO(p:q)` | the rational p/q | two simultaneous tones at p:q |
+| `GREATER` | the relation > | rising glissando (ostensive via multiple endpoints) |
+| `LESSER` | the relation < | falling glissando (ostensive via multiple endpoints) |
+| `BECOMES` | continuous transformation | smooth pitch glide with evolving timbre |
+| `AND` | co-presence | superposition of multiple primitives |
+| `OR` | alternation | clean alternation between two alternatives |
+| `PERIOD(T)` | x(t+T) = x(t) | content repeated at fixed period T |
+| `NEGATE` | additive inverse | phase-inverted content (in cancellation context) |
+
+## What this version contributed to the program
+
+- The nine-primitive vocabulary the project still uses as its foundation
+- The multi-instance ostensive-definition technique for teaching abstract
+  relations via examples
+- The separation between "directly observable" primitives (COUNT, RATIO,
+  PERIOD) and "operationally observable" primitives (NEGATE, only derivable
+  in cancellation context) that informs how each is used
+- The receiver-derivability test as the project's central validation step
+
+## Future work in this thread
+
+- Cross-model validation of all nine primitives ([v4.4 / v4.5](/research/v4-5))
+- Raw-audio protocol testing of each primitive ([v5](/research/v5))
+- Extension to deeper composition (three or more levels of nesting)
+
+## Source
+
+- Code: [continua/v4/](https://github.com/CitadelAI-Atlas/project-continua/tree/main/continua/v4) (vocabulary, encoder, analyzer)
+- Audio examples: `data/wavs/v4/`, `data/wavs/v4_1/`, `data/wavs/v4_2/`, `data/wavs/v4_3/` in the repo

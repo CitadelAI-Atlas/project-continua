@@ -1,0 +1,48 @@
+export const metadata = {
+  title: "v3: 4-axis feature space | Project Continua",
+};
+
+# v3: 4-axis feature space
+
+**Period:** Early-mid 2026
+**Status:** complete; clarified the decoding bottleneck and motivated the v4 reframe
+
+## The step v3 contributed
+
+v2 surfaced a decoding bottleneck. The hypothesis going into v3 was
+"insufficient discriminative features per primitive." v3 expanded each of
+the 20 primitives across four orthogonal feature axes (frequency family,
+timbre, spatial position, temporal envelope) so that any two primitives
+differed along multiple axes simultaneously.
+
+This hypothesis test produced a clear, useful outcome: feature richness
+alone does not improve decoding when the decoder cannot cleanly separate
+simultaneous sources from the audio mix. The bottleneck is source
+separation, not feature discrimination.
+
+## Headline finding
+
+A productive negative result: adding more discriminative features to each
+primitive did not improve decoder accuracy. This ruled out "richer features"
+as the path forward and pointed the project at the real problem: the
+decoder needed structural derivability, not just more features to match
+against a spec.
+
+## What this version contributed to the program
+
+- A concrete demonstration that "more features" is not the answer. Without
+  this, the project might have spent additional rounds adding ever-richer
+  feature axes.
+- An empirical baseline for what 20 primitives can do under decoder-side
+  analysis. The negative result was the key insight that drove v4's
+  receiver-derivability reframe.
+
+## Future work in this thread
+
+- The receiver-derivability reframe in [v4](/research/v4) is the direct
+  continuation of this finding
+
+## Source
+
+- Code: [continua/v3/](https://github.com/CitadelAI-Atlas/project-continua/tree/main/continua/v3) (vocabulary, encoder, decoder)
+- Audio: `data/wavs/v3/` in the repo

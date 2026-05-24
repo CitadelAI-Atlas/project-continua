@@ -1,0 +1,61 @@
+export const metadata = {
+  title: "v2: 20-primitive chord grammar | Project Continua",
+};
+
+# v2: 20-primitive chord grammar
+
+**Period:** Early 2026
+**Status:** complete; established the math-native encoder and the central problem the project still works on
+
+## The step v2 contributed
+
+v1 used eight convention-based symbols. v2 made two large advances:
+
+1. **Tripled the vocabulary** to twenty primitives organized into a
+   three-band chord grammar (bass, midrange, treble), so multiple primitives
+   can play simultaneously and be distinguished by frequency band.
+2. **Made the encoder math-native.** All primitive frequencies are derived
+   from integer ratios and harmonic relationships rather than arbitrary
+   assignment. Pitch, rhythm, and chord structure all carry mathematical
+   meaning at the encoder side.
+
+The round-trip benchmark (encoder produces audio, decoder reads it back)
+revealed an asymmetry: the encoder was math-native, but the decoder still
+needed the spec to interpret incoming audio.
+
+## Headline finding
+
+**Math-native encoding does not imply math-native decoding.** This
+asymmetry was the project's central problem statement going forward and
+shaped every subsequent round: v3 tested whether richer features helped
+the decoder (negative result), and v4 reframed the constraint so that
+encoding must be receiver-derivable from the audio structure itself.
+
+## Try it
+
+The v2 study-and-test dashboard is hosted: visit
+[Dashboards / v2](/dashboards/v2) to hear each primitive grouped by
+mathematical role (quantity, operator, relation, logic, quantifier,
+reference, process) and to run a randomized blind test.
+
+## What this version contributed to the program
+
+- The 20-primitive vocabulary and three-band chord grammar (still part
+  of the codebase as a reference vocabulary)
+- The math-native encoder using integer-ratio frequency relationships
+- The encoder/decoder-asymmetry problem statement that drove the next
+  several rounds of work
+- The hosted Learn-and-Test dashboard at [/dashboards/v2](/dashboards/v2)
+
+## Future work in this thread
+
+- The richer-feature attempt in [v3](/research/v3) was a direct
+  continuation
+- The receiver-derivability reframe in [v4](/research/v4) is where the
+  asymmetry problem was eventually addressed
+
+## Source
+
+- Code: [continua/vocabulary_v2.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/continua/vocabulary_v2.py), [continua/encoder_v2.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/continua/encoder_v2.py), [continua/decoder.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/continua/decoder.py)
+- Audio: `data/wavs/v2/`, `data/wavs/v2_bank/`, `data/wavs/v2_integration/` in the repo
+- Interactive: [Dashboards / v2](/dashboards/v2)

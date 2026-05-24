@@ -65,6 +65,21 @@ export default function Home() {
       </section>
 
       <section className="py-8">
+        <h2 className="text-2xl font-semibold mb-4">How we got here</h2>
+        <p className="text-zinc-700 dark:text-zinc-300 mb-4">
+          Each research output below describes a baby step that contributed
+          to the current vocabulary and the dual-track program. Living
+          documents, edited as understanding sharpens. Most recent first.
+        </p>
+        <a
+          href="/research"
+          className="inline-block px-5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 font-medium transition"
+        >
+          Read the research
+        </a>
+      </section>
+
+      <section className="py-8">
         <h2 className="text-2xl font-semibold mb-4">Lineage</h2>
         <p className="text-zinc-700 dark:text-zinc-300">
           Pythagorean music-as-math; Hans Freudenthal&apos;s{" "}

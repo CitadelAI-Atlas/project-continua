@@ -1,0 +1,76 @@
+export const metadata = {
+  title: "v1: 8-symbol proof of concept | Project Continua",
+};
+
+# v1: 8-symbol proof of concept
+
+**Period:** Early 2026
+**Status:** complete; established the encoder, dashboard, and statistical scoring pipeline used by every later version
+
+## The step v1 contributed
+
+v1 was the project's infrastructure round. It built an eight-symbol
+vocabulary of physical primitives (SELF, OTHER, PRESENCE, QUESTION, YES,
+NO, MORE, LESS), each encoded from physical principles (frequency,
+rhythm, envelope) rather than arbitrary mapping.
+
+Around that vocabulary, v1 built:
+
+- A WAV-generation encoder that produced real audio for each symbol
+- A Learn / Test / History dashboard for running blind study-and-test
+  sessions
+- A binomial-significance scoring framework comparing observed accuracy
+  against the chance baseline
+- A session-history pipeline so cumulative learning curves can be
+  tracked across visits
+
+This substrate is what every subsequent version builds on. v2 added
+twenty primitives but reused v1's encoder, dashboard, and scoring
+patterns. v3, v4, and v5 each added their own vocabulary and decoder
+work but did not need to rebuild the infrastructure.
+
+## Try it
+
+The v1 dashboard is hosted: visit [Dashboards / v1](/dashboards/v1) to
+hear each primitive with its rationale and to take a randomized blind
+test scored against the 12.5% chance baseline. Audio synthesizes in
+your browser via the Web Audio API.
+
+## The 8 v1 primitives
+
+| Symbol | Encoding rationale |
+|---|---|
+| SELF | Low sub-bass throb. Grounded, stable, here. |
+| OTHER | One octave above SELF. Distinct but related. |
+| PRESENCE | Low rhythmic pulse, like a heartbeat. |
+| QUESTION | Rising sweep, mirrors the rising intonation of questions across languages. |
+| YES | Two ascending pulses. Opening, expansive, upward. |
+| NO | Two descending pulses. Mirror image of YES. |
+| MORE | Accelerating pulse train. Physical experience of intensification. |
+| LESS | Decelerating pulse train. Physical experience of fading. |
+
+## What this version contributed to the program
+
+- Concrete encoding choices for the eight primitives, each justified
+  from physical principles. These choices later informed how v2
+  derived integer-ratio frequencies and how v4 framed
+  receiver-derivability.
+- The statistical framework for measuring whether human learners
+  exceed chance, which the project still uses for human-listener
+  studies under Track A.
+- A working dashboard for blind learning-and-testing sessions
+  ([/dashboards/v1](/dashboards/v1)), which makes the project
+  demonstrable to anyone with a browser.
+
+## Future work in this thread
+
+- The expansion to twenty math-native primitives in [v2](/research/v2)
+  is the direct continuation
+- The pedagogy framing under Track A reuses this round's statistical
+  framework
+
+## Source
+
+- Code: [continua/vocabulary.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/continua/vocabulary.py), [continua/encoder.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/continua/encoder.py), [continua/session.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/continua/session.py), [continua/stats.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/continua/stats.py)
+- Dashboard server: [app.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/app.py) + [static/](https://github.com/CitadelAI-Atlas/project-continua/tree/main/static)
+- Interactive: [Dashboards / v1](/dashboards/v1)

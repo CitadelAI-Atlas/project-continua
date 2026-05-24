@@ -1,0 +1,87 @@
+export const metadata = {
+  title: "v4.4 - v4.5: cross-model methodology | Project Continua",
+};
+
+# v4.4 - v4.5: cross-model methodology
+
+**Period:** May 2026
+**Status:** complete; methodology practices established as the project standard
+
+## The step v4.4 / v4.5 contributed
+
+Earlier v4 rounds tested each primitive against a single capable receiver
+model. v4.4 expanded this to three models in parallel (Opus 4.7, Sonnet 4.6,
+Haiku 4.5) so that math-native claims could be triangulated across
+receiver-capability tiers. v4.5 then upgraded the analyzer to surface gap
+hierarchy and cross-block invariants, added the multi-instance NEGATE
+formulation, and locked in the pre-registration practice that the project
+still uses.
+
+By the end of these two rounds the project had a measured picture of which
+primitives are stable across receivers, plus a set of methodology practices
+that every subsequent round inherits.
+
+## Headline finding
+
+Cross-model variance is the dominant signal, not vocabulary ambiguity. When
+all three Claude-family receivers agree on a primitive's derivation, the
+audio is unambiguous. When they disagree, the variance traces to
+characteristic per-model analysis priors. This reframed the project: future
+encoder work should focus on what survives cross-model agreement, and
+future receiver-side work can simply assume the codec is shared.
+
+## State of the vocabulary after v4.5
+
+Seven primitives derive cleanly across all three models tested:
+
+- `COUNT(N)` (the integer N)
+- `RATIO(p:q)` (simultaneous frequencies in small-integer ratio)
+- `BECOMES` (continuous transformation, frequency glide with timbre evolution)
+- `AND` (co-presence of distinct mathematical objects)
+- `PERIOD(T)` (periodic repetition with period T)
+- `IMPLIES_MULTI` (functional correspondence shown via paired instances)
+- `FUNCTION_MULTI` (input-output map shown via labeled examples)
+
+Three additional primitives derive cleanly with the most capable receiver
+and remain in the vocabulary as receiver-capability-sensitive:
+
+- `OR` (alternation between alternatives)
+- `SEQUENCE` (ordered presentation of elements)
+- `EQUAL_MULTI` (computational equivalence between structurally different expressions)
+
+## Methodology practices introduced in this round
+
+These v4.4 / v4.5 practices are now standard for every subsequent round:
+
+1. **Cross-model testing.** Every derivation runs on multiple models in
+   parallel. Headline numbers are cross-model.
+2. **Pre-registration.** Expected derivations and scoring rubrics are
+   committed before any agent runs. No post-hoc adjustment.
+3. **Verbatim prompts.** Every prompt sent to a receiver is published
+   verbatim in the writeup.
+4. **Sealed mappings.** Anonymized stimulus filenames prevent
+   filename-based shortcutting.
+
+## What this version contributed to the program
+
+- The cross-model methodology that turns claims about math-nativity
+  into measurable, reproducible results.
+- A vocabulary partition into "cross-model stable" and
+  "receiver-capability-sensitive" categories that informs what Track A
+  (pedagogy) and Track B (codec) can each rely on.
+- The pre-registration and verbatim-prompt practices the project still
+  follows.
+
+## Future work in this thread
+
+- Re-test the seven core primitives under v5's raw-audio protocol to
+  confirm cross-model stability under the cleanest available conditions
+- Quantify which receiver-side analysis approaches reliably surface the
+  structural features each primitive depends on
+- Begin Track A curriculum design around the seven core primitives
+
+## Source
+
+- Code: [continua/v4/](https://github.com/CitadelAI-Atlas/project-continua/tree/main/continua/v4)
+- Render scripts: [scripts/render_v4_4.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/scripts/render_v4_4.py), [scripts/render_v4_5.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/scripts/render_v4_5.py)
+- Audio: `data/wavs/v4_4/` and `data/wavs/v4_5/` in the repo

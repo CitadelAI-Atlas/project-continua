@@ -1,0 +1,55 @@
+export const metadata = {
+  title: "v5: raw-audio protocol | Project Continua",
+};
+
+# v5: raw-audio protocol
+
+**Period:** May 2026
+**Status:** round 1 complete, protocol established as the canonical experimental form
+
+## The step v5 contributed
+
+Earlier rounds analyzed audio with a project-specific analyzer that surfaced
+features like "blocks" and "pulses" to the receiver. v5 took the next step:
+the receiver gets the raw .wav file and runs its own analysis tools
+(numpy, scipy, FFT) deciding for itself what to compute. This is the cleanest
+possible test of whether the audio's mathematical structure alone is
+sufficient to convey meaning, with no shared interpretive vocabulary.
+
+## Headline finding
+
+The raw-audio protocol works. The most capable receiver derived the
+target integer on every COUNT trial. Where receivers gave different
+answers, the variance traced to their choice of analysis approach, not
+to anything missing from the audio. This made receiver capability,
+rather than vocabulary ambiguity, the dominant variable in the work
+that followed.
+
+## What this version contributed to the program
+
+- A protocol where receivers analyze raw audio directly. No
+  project-specific analyzer in the loop. This is the canonical
+  experimental form for any future "can a receiver derive this from the
+  audio alone?" question.
+- A pre-registered scoring framework (rubric locked before any agent
+  ran) that the project now applies uniformly.
+- Anonymized, sealed-mapping test design so filenames carry no semantic
+  cues.
+- An empirical demonstration that the protocol works end-to-end:
+  receivers loaded the WAV, ran their own analyses, and produced
+  grounded derivations without any tool-execution failures.
+
+## Future work in this thread
+
+- Apply the raw-audio protocol to the rest of the v4 primitives
+  (RATIO, BECOMES, AND, PERIOD, IMPLIES, FUNCTION, OR, SEQUENCE)
+- Run iterative and multi-instance conditions to characterize how much
+  feedback receivers need for each primitive
+- Begin human-listener studies on the same .wav files as the analog
+  cross-substrate comparison
+
+## Source
+
+- Render script: [scripts/render_v5_round1.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/scripts/render_v5_round1.py)
+- Encoder: [continua/v4/encoder.py](https://github.com/CitadelAI-Atlas/project-continua/blob/main/continua/v4/encoder.py)
+- Audio: `data/wavs/v5/` in the repo
