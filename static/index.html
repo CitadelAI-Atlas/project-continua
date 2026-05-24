@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>continua</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>continua</h1>
+      <span class="tag">vibrational language training</span>
+    </div>
+    <nav>
+      <button data-mode="learn" class="mode-btn active">Learn</button>
+      <button data-mode="test" class="mode-btn">Test</button>
+      <button data-mode="layered" class="mode-btn">Layered</button>
+      <button data-mode="receive" class="mode-btn">Receive (v2)</button>
+      <button data-mode="history" class="mode-btn">History</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- LEARN MODE -->
+    <section id="learn" class="mode active">
+      <p class="hint">Tap a symbol to hear it. Read why it's encoded the way it is. There's no scoring here — this is calibration.</p>
+      <div id="learn-grid" class="grid"></div>
+      <div id="learn-detail" class="detail">
+        <h3 id="learn-name">Pick a symbol</h3>
+        <p id="learn-meaning" class="meaning"></p>
+        <p id="learn-rationale" class="rationale"></p>
+        <button id="learn-play" class="play-btn" disabled>▶ Play</button>
+      </div>
+    </section>
+
+    <!-- TEST MODE -->
+    <section id="test" class="mode">
+      <div id="test-intro">
+        <p class="hint">You'll hear randomized symbols. After each one, tap your guess. Immediate feedback shown. Aim for at least 24 trials for the stats to mean something.</p>
+        <div class="controls">
+          <label>
+            Trials:
+            <select id="trial-count">
+              <option value="16">16</option>
+              <option value="24" selected>24</option>
+              <option value="32">32</option>
+              <option value="48">48</option>
+            </select>
+          </label>
+          <label class="notes-label">
+            Notes (optional):
+            <input type="text" id="session-notes" placeholder="e.g. session 2, AirPods" />
+          </label>
+          <button id="test-start" class="primary-btn">Start session</button>
+        </div>
+      </div>
+
+      <div id="test-active" class="hidden">
+        <div class="trial-header">
+          <div class="trial-counter">Trial <span id="trial-num">1</span> / <span id="trial-total">24</span></div>
+          <div class="trial-score">Score: <span id="score-num">0</span>/<span id="score-total">0</span> (<span id="score-pct">—</span>)</div>
+        </div>
+        <div class="trial-controls">
+          <button id="hear-btn" class="primary-btn">▶ Hear symbol</button>
+          <button id="replay-btn" class="ghost-btn" disabled>↻ Replay</button>
+        </div>
+        <p class="prompt">What did you hear?</p>
+        <div id="guess-grid" class="grid guess-grid"></div>
+        <div id="trial-feedback" class="feedback"></div>
+      </div>
+
+      <div id="test-results" class="hidden">
+        <h2>Session complete</h2>
+        <div id="results-summary" class="results-card"></div>
+        <h3>Per-symbol accuracy</h3>
+        <table id="results-breakdown" class="breakdown-table"></table>
+        <h3>Confusions</h3>
+        <div id="results-confusions" class="confusions"></div>
+        <div class="controls">
+          <button id="restart-btn" class="primary-btn">New session</button>
+          <button id="goto-history" class="ghost-btn">View history</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAYERED MODE -->
+    <section id="layered" class="mode">
+      <p class="hint">
+        Two channels at once: <strong>content</strong> on the left ear (what's being said), <strong>metadata</strong> on the right ear (how it's being said — confidence, urgency, etc.).
+        Headphones strongly recommended for stereo separation.
+      </p>
+
+      <h3 class="section-h">Metadata vocabulary</h3>
+      <p class="hint">Tap to hear each metadata texture on its own. Notice how they're sustained and low — they sit *under* content.</p>
+      <div id="meta-grid" class="grid"></div>
+      <div id="meta-detail" class="detail">
+        <h3 id="meta-name">Pick a metadata symbol</h3>
+        <p id="meta-meaning" class="meaning"></p>
+        <p id="meta-rationale" class="rationale"></p>
+        <button id="meta-play" class="play-btn" disabled>▶ Play</button>
+      </div>
+
+      <h3 class="section-h">Combined test</h3>
+      <p class="hint">Hear a stereo signal carrying both layers simultaneously. Identify <em>both</em> — content (8 options) and metadata (6 options).</p>
+
+      <div id="layered-intro">
+        <div class="controls">
+          <label>
+            Trials:
+            <select id="layered-trial-count">
+              <option value="12">12</option>
+              <option value="20" selected>20</option>
+              <option value="32">32</option>
+            </select>
+          </label>
+          <label class="notes-label">
+            Notes:
+            <input type="text" id="layered-notes" placeholder="e.g. first layered session" />
+          </label>
+          <button id="layered-start" class="primary-btn">Start layered session</button>
+        </div>
+      </div>
+
+      <div id="layered-active" class="hidden">
+        <div class="trial-header">
+          <div class="trial-counter">Trial <span id="layered-num">1</span> / <span id="layered-total">20</span></div>
+          <div class="trial-score">
+            content <span id="layered-content-score">0/0</span> ·
+            metadata <span id="layered-meta-score">0/0</span> ·
+            both <span id="layered-both-score">0/0</span>
+          </div>
+        </div>
+        <div class="trial-controls">
+          <button id="layered-hear" class="primary-btn">▶ Hear (stereo)</button>
+          <button id="layered-replay" class="ghost-btn" disabled>↻ Replay</button>
+        </div>
+        <p class="prompt">Content? (left ear)</p>
+        <div id="layered-content-grid" class="grid guess-grid"></div>
+        <p class="prompt">Metadata? (right ear)</p>
+        <div id="layered-meta-grid" class="grid guess-grid"></div>
+        <button id="layered-submit" class="primary-btn" disabled>Submit guess</button>
+        <div id="layered-feedback" class="feedback"></div>
+      </div>
+
+      <div id="layered-results" class="hidden">
+        <h2>Layered session complete</h2>
+        <div id="layered-summary" class="results-card"></div>
+        <div class="controls">
+          <button id="layered-restart" class="primary-btn">New layered session</button>
+          <button id="layered-history" class="ghost-btn">View history</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECEIVE MODE (v2) -->
+    <section id="receive" class="mode">
+      <p class="hint">
+        Math-native receptive listening. Eyes closed, headphones on, voice-only interaction.
+        Three voice commands: <strong>begin</strong> (start a trial) · <strong>replay</strong> (hear it again) · <strong>done</strong> (finalize this trial).
+        Speak naturally between trials — your transcript is matched against the ground-truth message.
+      </p>
+
+      <div id="receive-intro">
+        <div class="controls">
+          <label>
+            Subject ID:
+            <input type="text" id="receive-subject" placeholder="e.g. self, S01" value="self" />
+          </label>
+          <label>
+            Tier:
+            <select id="receive-tier">
+              <option value="chord" selected>Chord (single proposition)</option>
+              <option value="phrase">Phrase (2–3 chords)</option>
+              <option value="paragraph">Paragraph (4+ chords)</option>
+            </select>
+          </label>
+          <label>
+            Trials:
+            <select id="receive-trials">
+              <option value="3">3</option>
+              <option value="6" selected>6</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </label>
+          <button id="receive-start" class="primary-btn">Start receive session</button>
+        </div>
+        <div id="receive-capability" class="capability-banner"></div>
+      </div>
+
+      <div id="receive-calibration" class="hidden">
+        <h3>Calibration</h3>
+        <p id="calibration-step" class="prompt">Preparing…</p>
+        <div id="calibration-progress" class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+
+      <div id="receive-trial" class="hidden">
+        <div class="trial-header">
+          <div class="trial-counter">Trial <span id="receive-trial-num">1</span> / <span id="receive-trial-total">6</span></div>
+          <div class="trial-score">
+            correct <span id="receive-score-correct">0</span> ·
+            partial <span id="receive-score-partial">0</span> ·
+            incorrect <span id="receive-score-incorrect">0</span>
+          </div>
+        </div>
+        <p id="receive-state" class="prompt">Say "begin" when ready.</p>
+        <div id="receive-listening" class="listening-indicator hidden">🎙 listening</div>
+        <div id="receive-transcript" class="transcript"></div>
+        <div class="trial-controls">
+          <button id="receive-replay-btn" class="ghost-btn" disabled>↻ Replay</button>
+          <button id="receive-done-btn" class="primary-btn" disabled>✓ Done</button>
+          <button id="receive-typed-btn" class="ghost-btn">⌨ Type instead</button>
+        </div>
+        <div id="receive-typed-input" class="hidden">
+          <input type="text" id="receive-typed-text" placeholder="Type what you heard…" />
+          <button id="receive-typed-submit" class="primary-btn">Submit</button>
+        </div>
+        <div id="receive-feedback" class="feedback"></div>
+      </div>
+
+      <div id="receive-results" class="hidden">
+        <h2>Receive session complete</h2>
+        <div id="receive-summary" class="results-card"></div>
+        <h3>Trials</h3>
+        <table id="receive-trial-table" class="breakdown-table"></table>
+        <div class="controls">
+          <button id="receive-restart" class="primary-btn">New session</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY MODE -->
+    <section id="history" class="mode">
+      <p class="hint">Your sessions over time. The learning curve is the real signal — single sessions are noisy.</p>
+      <div id="history-chart-wrap">
+        <canvas id="history-chart" width="800" height="220"></canvas>
+      </div>
+      <table id="history-table" class="history-table"></table>
+      <p id="history-empty" class="hint hidden">No sessions yet. Run your first one in <strong>Test</strong>.</p>
+    </section>
+  </main>
+
+  <audio id="player" preload="auto"></audio>
+  <script src="/static/app.js"></script>
+</body>
+</html>

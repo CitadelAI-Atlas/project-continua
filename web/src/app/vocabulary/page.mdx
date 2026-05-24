@@ -1,0 +1,132 @@
+import AudioPlayer from "@/components/AudioPlayer";
+
+export const metadata = {
+  title: "Vocabulary | Project Continua",
+  description:
+    "The core math-native primitives of Project Continua, each grounded in shared mathematics and acoustic physics. Listen below.",
+};
+
+# The vocabulary
+
+These are the core math-native primitives. Each one is grounded in a
+mathematical relationship that the audio's structure directly expresses:
+integer frequency ratios, periodic timing, continuous transformation,
+co-presence, ordered sequence. The math is not labeled on top of the
+audio; the math IS the audio.
+
+Listen below. Headphones recommended.
+
+## Count
+
+Discrete integer values are encoded as a count of identical pulses on a
+reference frequency. The number of pulses is the number.
+
+<AudioPlayer
+  src="/audio/v5/audio_002.wav"
+  label="three"
+  description="3 pulses at 440 Hz"
+/>
+
+<AudioPlayer
+  src="/audio/v5/audio_003.wav"
+  label="five"
+  description="5 pulses at 440 Hz"
+/>
+
+<AudioPlayer
+  src="/audio/v5/audio_004.wav"
+  label="seven"
+  description="7 pulses at 440 Hz"
+/>
+
+## Ratio
+
+Rational numbers are encoded as simultaneous tones in small-integer
+frequency ratio. A 3:2 ratio sounds as a perfect fifth.
+
+<AudioPlayer
+  src="/audio/v4_5/p2_ratio.wav"
+  label="3:2"
+  description="440 Hz and 660 Hz, a perfect fifth interval"
+/>
+
+## Becomes (continuous transformation)
+
+A continuous change from one value to another is encoded as a smooth
+pitch glide with an evolving timbre, marking the audio as a process
+rather than a static relation.
+
+<AudioPlayer
+  src="/audio/v4_5/p5_becomes.wav"
+  label="440 becomes 583"
+  description="Continuous glide from 440 Hz to 583 Hz with timbre evolution"
+/>
+
+## And (co-presence)
+
+Multiple primitives can be combined by playing them simultaneously,
+mathematical conjunction expressed as acoustic superposition.
+
+<AudioPlayer
+  src="/audio/v4_5/p6_and.wav"
+  label="three AND two-to-one"
+  description="A 3-pulse train superposed with a 2:1 octave dyad"
+/>
+
+## Period (cyclic repetition)
+
+A content played at a fixed period communicates the mathematical
+relationship x(t + T) = x(t). The period is directly audible as the
+time between repetitions.
+
+<AudioPlayer
+  src="/audio/v4_5/p8_period.wav"
+  label="period 0.7s"
+  description="A composite repeated every 0.7 seconds"
+/>
+
+## Or (alternation)
+
+A choice between alternatives is encoded as clear alternation in time:
+A then B then A then B then A then B.
+
+<AudioPlayer
+  src="/audio/v4_5/p7_or.wav"
+  label="two OR 3:2"
+  description="Alternation between a 2-pulse count and a 3:2 dyad"
+/>
+
+## Implies (functional correspondence)
+
+Functional relationships are demonstrated by paired instances where the
+left side determines the right. The receiver sees the pattern across
+multiple examples.
+
+<AudioPlayer
+  src="/audio/v4_5/p12_implies_multi.wav"
+  label="N implies ratio N:1"
+  description="Four pairs: (2 pulses, 2:1 ratio), (3 pulses, 3:1), (4 pulses, 4:1), (5 pulses, 5:1)"
+/>
+
+## Function (input-output map)
+
+A mathematical map from inputs to outputs is shown via paired
+(input, output) instances. The receiver derives the function from
+the examples.
+
+<AudioPlayer
+  src="/audio/v4_5/p13_function_multi.wav"
+  label="x maps to 2x"
+  description="Six pairs showing the doubling map: (1,2), (2,4), (3,6), (4,8), (5,10), (6,12)"
+/>
+
+## What this is for
+
+These primitives are the substrate for both tracks of the project:
+
+- **Track A** teaches them to humans as a new mathematically precise
+  form of communication.
+- **Track B** uses them as the building blocks of an efficient data
+  codec.
+
+The code that renders this audio is in [the public repo](https://github.com/CitadelAI-Atlas/project-continua).

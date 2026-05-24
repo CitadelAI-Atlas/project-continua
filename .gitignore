@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Next.js / Node
+web/.next/
+web/node_modules/
+web/.vercel
+web/out/
+web/build/
+web/dist/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Data files we DO commit (audio is part of the research):
+# data/wavs/*.wav  -- explicitly tracked
+# data/*.json      -- explicitly tracked
+
+# Anything that's clearly per-session-output we don't want public yet
+data/sessions/
+data/v2_sessions/
+.vercel
+
+# Internal records, iteration logs, methodology drafts.
+# Keep locally for our own reference but never publish.
+private/
+HANDOFF.md
+docs/
+.claude/
