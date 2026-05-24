@@ -43,17 +43,25 @@ export default function Home() {
       </section>
 
       <section className="py-8">
-        <h2 className="text-2xl font-semibold mb-4">Listen</h2>
+        <h2 className="text-2xl font-semibold mb-4">Try it</h2>
         <p className="text-zinc-700 dark:text-zinc-300 mb-4">
-          The core primitives are playable in your browser, headphones
-          recommended.
+          The vocabulary is playable in your browser, and the dashboards run
+          a full study-and-test flow with blind scoring. Headphones recommended.
         </p>
-        <a
-          href="/vocabulary"
-          className="inline-block px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
-        >
-          Hear the vocabulary
-        </a>
+        <div className="flex flex-wrap gap-3">
+          <a
+            href="/vocabulary"
+            className="inline-block px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
+          >
+            Hear the vocabulary
+          </a>
+          <a
+            href="/dashboards"
+            className="inline-block px-5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:border-blue-400 dark:hover:border-blue-600 font-medium transition"
+          >
+            Open the dashboards
+          </a>
+        </div>
       </section>
 
       <section className="py-8">
