@@ -1,6 +1,13 @@
 // Most-recent first. New dashboards land at the TOP of this list.
 const dashboards = [
   {
+    href: "/dashboards/v2",
+    title: "v2 study and test",
+    blurb:
+      "Twenty math-native primitives grouped by category: quantity, operator, relation, logic, quantifier, reference, process. Each is defined by a mathematical structure rendered as its exact acoustic realization.",
+    available: true,
+  },
+  {
     href: "/dashboards/v1",
     title: "v1 study and test",
     blurb:
