@@ -13,7 +13,7 @@ Renders a fixed test set of v4 math expressions through two paths:
 
 For both paths, each expression is sent at three channel conditions:
 clean, +10 dB white noise, and 0 dB direct-to-reverb. Results are
-written to private/data/ai_receiver_<utc>.json for review.
+written to a local gitignored output directory as ai_receiver_<utc>.json for review.
 
 This is "AI receiver" experiment v0, run with a single AI in the loop
 (the current session, not cross-model). Future work: wire to the

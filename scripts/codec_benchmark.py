@@ -26,8 +26,8 @@ Methodology:
 
 Output:
 
-    Written to private/data/codec_benchmark_<UTC-isoz>.json. The private/
-    directory is gitignored; this is internal Track B data, not public.
+    Written to codec_benchmark_<UTC-isoz>.json in the local gitignored output
+    directory; this is internal Track B data, not public.
 
 CLI:
 

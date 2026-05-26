@@ -1,6 +1,6 @@
 """Render PNG charts from a codec bake-off JSON result file.
 
-Reads private/data/codec_bakeoff_*.json (latest by default) and writes
+Reads codec_bakeoff_*.json from the local gitignored output directory (latest by default) and writes
 chart images into web/public/codec/ for the public Track B page.
 
 Charts produced:
