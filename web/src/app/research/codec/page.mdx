@@ -1,0 +1,299 @@
+export const metadata = {
+  title: "Codec: building Track B | Project Continua",
+};
+
+# Codec: building Track B
+
+**Period:** May 2026
+**Status:** five-round optimization pass complete, baseline established
+
+## The step this thread contributed
+
+Earlier work in Project Continua focused on the receiver side: can a
+mathematics-using listener derive a primitive's meaning from the audio
+alone? Track B asks the engineering question that runs parallel to that:
+given the same math-native vocabulary, how much data per second can the
+channel actually carry, and how does that throughput hold up as the
+channel gets worse?
+
+For the meaning-discarding bandwidth comparison (how much data per
+second can the channel carry if you don't constrain the symbols to be
+self-describing), see [Acoustic bandwidth: a baseline](/research/bandwidth).
+The two pages are companion measurements: this page studies the
+math-native codec, that page studies the unconstrained OFDM ceiling,
+and the gap between them quantifies the cost of meaning-preservation.
+
+This page is the record of a five-round optimization pass on a composed
+codec built on top of the v4 primitives. Each round adds one standard
+technique from communications engineering and measures what it buys us.
+The goal is an honest baseline for the conversation that follows, not a
+tuned product.
+
+## How the codec works
+
+The baseline encodes a byte payload by chopping its bitstream into 3-bit
+groups, mapping each group to one of eight RATIO primitives (the most
+noise-robust primitive in the per-primitive benchmark), and rendering
+them in SEQUENCE with a fixed silence gap between symbols so the decoder
+can find the boundaries. The decoder segments the audio at those gaps,
+identifies each block's RATIO from its spectral peaks, and reassembles
+the bitstream. The math-native vocabulary is doing the actual carrying;
+the codec is a thin protocol wrapper around it.
+
+That baseline carries about **1.94 bits per second** on a clean channel,
+with a sharp noise cliff at roughly +15 dB SNR. The five rounds below
+trade between two axes: lowering that noise cliff and raising the
+clean-channel throughput.
+
+## Round 1: symbol repetition with majority vote
+
+Encode each symbol three times in a row. The decoder takes a majority
+vote across the three copies. Spends a factor of three in throughput to
+gain noise immunity, on the same principle that a vote of three noisy
+witnesses beats one. Direct, well-understood, easy to compose with
+anything that comes later.
+
+**Contribution:** establishes the noise-floor / throughput trade-off
+explicitly, with the simplest possible mechanism. The result was
+sobering: the cliff against additive noise sits at the same +15 dB SNR
+as baseline, because at that cliff multiple consecutive symbols
+corrupt simultaneously and the majority vote inherits the corruption
+from all three copies. Repetition does buy a few dB in reverb but at
+1/3 the throughput cost.
+
+<img src="/codec/codec_round_R1.png" alt="Round 1: repetition vs baseline" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+## Round 2: multi-band parallel symbols
+
+Render two independent RATIO dyads in disjoint frequency bands at the
+same time: one in 100 to 700 Hz, one in 900 to 3600 Hz. Each symbol
+slot now carries six bits instead of three. The decoder extracts the
+ratio in each band separately. The vocabulary table is the same;
+each band uses the same eight RATIOs after octave-shifting them into
+its assigned spectral range, so the operator's meaning (the ratio) is
+preserved while the actual peak frequencies move.
+
+**Contribution:** demonstrates that the channel has room for parallel
+symbol streams in disjoint spectral bands. Doubles raw clean-channel
+throughput from 1.94 to 3.66 bits per second with no loss of noise
+robustness in reverb, and matching the baseline cliff in additive
+noise (no worse, no better).
+
+<img src="/codec/codec_round_R2.png" alt="Round 2: multi-band vs baseline" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+## Round 3: Hamming(7,4) forward error correction
+
+Apply a textbook Hamming(7,4) code to the bitstream before symbol
+mapping. Every four data bits become seven channel bits with a
+single-bit error correction capability. Costs four sevenths of the raw
+throughput; buys back any cell where exactly one channel bit per
+seven-bit codeword was flipped.
+
+**Contribution:** introduces explicit error correction as a separate
+layer, isolating "did the symbol decode wrong" from "is the payload
+recoverable." On its own Hamming(7,4) does not push the additive-noise
+cliff, because at the cliff multiple bits per codeword corrupt and the
+single-bit window is exceeded. The interesting result was when
+Hamming was stacked with pilot calibration: the combination produced
+the lowest reverb floor in the entire bake-off.
+
+<img src="/codec/codec_round_R3.png" alt="Round 3: Hamming(7,4) vs baseline" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+## Round 4: pilot tone and adaptive decoder
+
+Prepend a short reference tone of known frequency and amplitude
+(220 Hz, 0.4 seconds) before the payload. The decoder measures its
+spectral peak and uses the pilot-to-noise ratio to set its symbol
+identification threshold adaptively rather than assuming a fixed
+fraction of block peak. Borrowed from broadcast radio practice, where a
+pilot subcarrier in FM stereo serves the same calibration role.
+
+**Contribution:** adds a small overhead per message but lets the decoder
+ground its decisions in measured channel conditions rather than fixed
+constants. Modest robustness improvement on its own; the meaningful
+effect is compositional, particularly when stacked with Hamming.
+
+<img src="/codec/codec_round_R4.png" alt="Round 4: pilot tone vs baseline" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+## Round 5: bake-off
+
+The four rounds compose. Configurations were swept across white noise,
+pink noise, and a small-room reverb (RT60 about 0.35 seconds), at SNR
+steps from +30 dB down to -15 dB. The chart below shows effective bits
+per second versus SNR for each noise type. Effective bits per second is
+defined as the raw rate scaled down by the bit error rate, so any cell
+above zero is doing useful work.
+
+<img src="/codec/codec_clean_bps_bar.png" alt="Clean-signal effective bits per second by codec configuration" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+<img src="/codec/codec_bps_white.png" alt="Codec throughput vs SNR in white noise" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+<img src="/codec/codec_bps_pink.png" alt="Codec throughput vs SNR in pink noise" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+<img src="/codec/codec_bps_reverb.png" alt="Codec throughput vs SNR in small-room reverb" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+The two-panel scatter below shows the throughput vs noise-floor
+trade-off split by noise type. The left panel makes the universal
++15 dB cliff in white noise visible (every configuration on the same
+horizontal line). The right panel is where configurations actually
+differentiate, with ham74+pilot reaching the lowest reverb floor at
+-15 dB.
+
+<img src="/codec/codec_tradeoff.png" alt="Throughput vs noise-floor trade-off, by noise type" className="my-6 rounded border border-zinc-200 dark:border-zinc-800" />
+
+## Reading the results
+
+The headline numbers, clean-channel:
+
+- **Multi-band** lifts throughput to **3.66 bits per second**, almost
+  exactly double the baseline 1.94. The doubling holds across every
+  noise type at high SNR and survives down to where the decoder cliff
+  hits, so this is a clean win on the throughput axis with no obvious
+  cost.
+- Multi-band with the pilot tone calibration is **3.30 bps**, a small
+  overhead that buys back a few dB of noise-floor improvement in pink
+  noise.
+- Multi-band stacked with Hamming(7,4) and pilot lands at **2.01 bps**.
+  The Hamming overhead approximately halves the multi-band gain, but
+  this configuration delivers the lowest reverb floor of any
+  multi-band config and matches the baseline throughput.
+
+The noise-axis findings were less symmetric than expected, and that
+turned out to be the more useful result:
+
+- **Reverb is consistently the friendliest noise** for every
+  configuration. The reverb chart above shows every line holding its
+  clean-channel throughput essentially flat all the way down to -15 dB
+  direct-to-reverberant ratio. Late echoes smear the signal in time
+  without raising the broadband noise floor that the spectral decoder
+  thresholds against. Real rooms should not threaten this codec.
+- **Additive white and pink noise produce a sharp cliff at +15 to +30 dB
+  SNR** that none of the simple techniques in this pass actually
+  pushed down meaningfully. Symbol repetition voted three corrupted
+  copies into one corrupted symbol; Hamming(7,4) corrects single-bit
+  errors per codeword, but at the cliff multiple bits flip in the same
+  seven-bit window and Hamming's correction window is exceeded. The
+  cliff is a feature of the channel-symbol structure, not of any
+  particular FEC's strength.
+- **The clean exception is reverb plus Hamming plus pilot calibration,
+  which holds 1% bit error rate all the way down to -15 dB.** Reverb-
+  induced errors are sparse and well-spaced enough that Hamming can
+  catch them; the pilot tone keeps the symbol identifier well-
+  calibrated as the diffuse energy rises.
+
+The honest read is that this pass landed two of the four goals: the
+throughput axis moved cleanly (multi-band, two parallel streams), and
+the codec turned out to be naturally reverb-robust. The noise-floor
+axis against broadband additive noise was not improved by any of the
+simple techniques tried here. That points at the next pass: stronger
+forward error correction with a longer error-correcting window, or
+soft-decision decoding that uses spectral peak confidence as a per-bit
+likelihood rather than a hard symbol decision.
+
+## Hear it work
+
+The same eight-byte payload `continua` encoded through the baseline
+codec, mixed with each noise condition, and decoded. The "decoded"
+column shows what the receiver actually got back; the BER is the
+average over eight noisy trials at that setting. Pulse-train rhythm
+and dyad pitch are both audible in the cleaner cases.
+
+<div className="my-6 overflow-x-auto">
+  <table className="w-full text-sm border border-zinc-200 dark:border-zinc-800 rounded">
+    <thead className="bg-zinc-50 dark:bg-zinc-900 text-left">
+      <tr>
+        <th className="px-3 py-2 font-semibold">Channel</th>
+        <th className="px-3 py-2 font-semibold">Listen</th>
+        <th className="px-3 py-2 font-semibold">Decoded</th>
+        <th className="px-3 py-2 font-semibold text-right">BER</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">Clean (no noise added)</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/codec/demo/clean.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono">continua</td>
+        <td className="px-3 py-2 text-right font-mono text-green-600 dark:text-green-400">0.0%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">White noise, +20 dB SNR</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/codec/demo/white_20db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono">continua</td>
+        <td className="px-3 py-2 text-right font-mono text-green-600 dark:text-green-400">0.0%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">White noise, +10 dB SNR (below cliff)</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/codec/demo/white_10db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono">........</td>
+        <td className="px-3 py-2 text-right font-mono text-red-600 dark:text-red-400">56.3%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">Reverb, +10 dB direct-to-reverb</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/codec/demo/reverb_10db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono">continua</td>
+        <td className="px-3 py-2 text-right font-mono text-green-600 dark:text-green-400">0.0%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">Reverb, 0 dB direct-to-reverb</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/codec/demo/reverb_0db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono">continua</td>
+        <td className="px-3 py-2 text-right font-mono text-green-600 dark:text-green-400">0.0%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">Reverb, -10 dB direct-to-reverb</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/codec/demo/reverb_n10.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono">.on.in.a</td>
+        <td className="px-3 py-2 text-right font-mono text-amber-600 dark:text-amber-400">7.4%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+A few things worth noticing while listening. The clean signal is the
+pulse-train of symbols you hear plainly. At +20 dB white noise you
+can still pick out the rhythm under the hiss. At +10 dB white, the
+hiss has swallowed the pulses; the decoder picks essentially random
+peaks and returns garbage. The two reverb clips at +10 and 0 dB sound
+audibly wetter than the clean version but the rhythm and pitch
+content survive intact, which is exactly what the throughput charts
+above predicted. The -10 dB reverb is almost all room and only some
+of the payload makes it through; the partial decode `.on.in.a` from
+`continua` is the kind of corruption a single-bit FEC would clean up.
+
+## Future work in this thread
+
+- **Stronger error correction with a longer window.** Hamming(7,4)
+  corrects a single bit per seven-bit codeword, which is too narrow
+  for the burst errors that appear at the additive-noise cliff.
+  Reed-Solomon or a convolutional code with Viterbi decoding has a
+  much longer correction window and should be the next move on the
+  noise-floor axis.
+- **Soft-decision decoding.** Right now each symbol is identified
+  with a hard decision (one of eight ratios). The spectrum carries
+  more information than that: peak height, peak sharpness, presence of
+  spurious peaks. Treating each symbol's identification as a
+  likelihood vector instead of a single guess would feed a soft-input
+  decoder and push the cliff down further at no throughput cost.
+- **MP3 and lossy compression as a noise type.** Real audio channels
+  often include perceptual codecs. This pass skipped it only because
+  it would add an ffmpeg dependency.
+- **Narrowband jammers.** RATIO is the noise champion against
+  broadband interference. Narrowband jammers aimed at its peaks
+  would be the natural stress test of the spectral approach.
+- **Joint Track A and Track B.** Render noisy codec messages and let
+  human listeners try to decode them through the v4 dashboard. This
+  joins the pedagogy and engineering tracks in a single measurement:
+  what is the human equivalent of a 1% bit error rate, and at what
+  SNR does the human curve cross the algorithmic one?
+
+## Source
+
+- Codec implementation: `continua/codec.py`
+- Per-primitive benchmark (the per-primitive backdrop to this work):
+  `scripts/codec_benchmark.py`
+- End-to-end benchmark (single config round-trip): `scripts/codec_e2e_benchmark.py`
+- Full bake-off used to produce the charts: `scripts/codec_bakeoff.py`
+- Chart generation: `scripts/codec_bakeoff_charts.py`
+
+All code in the public repository at
+[github.com/CitadelAI-Atlas/project-continua](https://github.com/CitadelAI-Atlas/project-continua).

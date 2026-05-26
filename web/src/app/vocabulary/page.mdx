@@ -3,20 +3,23 @@ import AudioPlayer from "@/components/AudioPlayer";
 export const metadata = {
   title: "Vocabulary | Project Continua",
   description:
-    "The core math-native primitives of Project Continua, each grounded in shared mathematics and acoustic physics. Listen below.",
+    "The math-native primitives of Project Continua, each grounded in shared mathematics and acoustic physics. Listen below.",
 };
 
 # The vocabulary
 
-These are the core math-native primitives. Each one is grounded in a
+These are the math-native primitives. Each one is grounded in a
 mathematical relationship that the audio's structure directly expresses:
 integer frequency ratios, periodic timing, continuous transformation,
-co-presence, ordered sequence. The math is not labeled on top of the
-audio; the math IS the audio.
+discrete state sequences, co-presence, ordered time, ostensive
+demonstration. The math is not labeled on top of the audio; the math
+IS the audio.
 
-Listen below. Headphones recommended.
+Headphones recommended.
 
-## Count
+## Quantity and proportion
+
+### Count
 
 Discrete integer values are encoded as a count of identical pulses on a
 reference frequency. The number of pulses is the number.
@@ -39,7 +42,7 @@ reference frequency. The number of pulses is the number.
   description="7 pulses at 440 Hz"
 />
 
-## Ratio
+### Ratio
 
 Rational numbers are encoded as simultaneous tones in small-integer
 frequency ratio. A 3:2 ratio sounds as a perfect fifth.
@@ -50,7 +53,9 @@ frequency ratio. A 3:2 ratio sounds as a perfect fifth.
   description="440 Hz and 660 Hz, a perfect fifth interval"
 />
 
-## Becomes (continuous transformation)
+## Transformation and direction
+
+### Becomes (continuous transformation)
 
 A continuous change from one value to another is encoded as a smooth
 pitch glide with an evolving timbre, marking the audio as a process
@@ -62,10 +67,53 @@ rather than a static relation.
   description="Continuous glide from 440 Hz to 583 Hz with timbre evolution"
 />
 
-## And (co-presence)
+### Transformation (discrete step sequence)
+
+A sequence of stable tones at different frequencies, each held for
+three seconds before stepping discretely to the next. Where Becomes is
+a smooth glide between two values, Transformation steps between three
+or more stable states with no glide between them. The signal is a
+piecewise constant function in time, and the ordered list of plateau
+frequencies is the message.
+
+<AudioPlayer
+  src="/audio/v4/transformation.wav"
+  label="220 to 440 to 330 to 880 Hz"
+  description="Four stable plateaus, three seconds each, stepping discretely between values"
+/>
+
+### Greater (monotonic increase)
+
+Strict directional comparison: a rising pitch motion whose endpoint
+frequencies are deliberately not a clean small-integer ratio, so the
+receiver cannot reduce the motion to an interval and is forced to
+derive the abstract meaning "upward."
+
+<AudioPlayer
+  src="/audio/v4_5/p3_greater_multi.wav"
+  label="multi-instance greater"
+  description="Three rising glides with different prime-frequency endpoints; the invariant is upward motion"
+/>
+
+### Lesser (monotonic decrease)
+
+The mirror operator: three falling glides with similarly non-clean
+endpoint frequencies. The invariant is downward motion.
+
+<AudioPlayer
+  src="/audio/v4_5/p4_lesser_multi.wav"
+  label="multi-instance lesser"
+  description="Three falling glides with prime-frequency endpoints; the invariant is downward motion"
+/>
+
+## Composition and choice
+
+### And (co-presence)
 
 Multiple primitives can be combined by playing them simultaneously,
-mathematical conjunction expressed as acoustic superposition.
+with the encoder gating the sustained component against the
+pulse-train so both layers survive in the combined envelope (v4.6
+fix). Mathematical conjunction expressed as acoustic superposition.
 
 <AudioPlayer
   src="/audio/v4_5/p6_and.wav"
@@ -73,19 +121,7 @@ mathematical conjunction expressed as acoustic superposition.
   description="A 3-pulse train superposed with a 2:1 octave dyad"
 />
 
-## Period (cyclic repetition)
-
-A content played at a fixed period communicates the mathematical
-relationship x(t + T) = x(t). The period is directly audible as the
-time between repetitions.
-
-<AudioPlayer
-  src="/audio/v4_5/p8_period.wav"
-  label="period 0.7s"
-  description="A composite repeated every 0.7 seconds"
-/>
-
-## Or (alternation)
+### Or (alternation)
 
 A choice between alternatives is encoded as clear alternation in time:
 A then B then A then B then A then B.
@@ -96,11 +132,44 @@ A then B then A then B then A then B.
   description="Alternation between a 2-pulse count and a 3:2 dyad"
 />
 
-## Implies (functional correspondence)
+### Sequence (strict temporal order)
 
-Functional relationships are demonstrated by paired instances where the
-left side determines the right. The receiver sees the pattern across
-multiple examples.
+Where And presents components in parallel and Or alternates between
+them, Sequence presents components in strict left-to-right temporal
+order separated by short silence gaps. The order is the meaning.
+
+<AudioPlayer
+  src="/audio/v4_5/p11_sequence.wav"
+  label="ordered sequence"
+  description="Several components played in strict temporal order, separated by short silence gaps"
+/>
+
+## Time and repetition
+
+### Period (cyclic repetition)
+
+A content played at a fixed period communicates the mathematical
+relationship x(t + T) = x(t). The period is directly audible as the
+time between repetitions. The encoder extends the period when the
+inner content would otherwise overflow (v4.7).
+
+<AudioPlayer
+  src="/audio/v4_5/p8_period.wav"
+  label="period 0.7s"
+  description="A composite repeated every 0.7 seconds"
+/>
+
+## Relation by ostensive demonstration
+
+These primitives demonstrate an abstract relation through multiple
+concrete paired instances. The receiver derives the relation by
+identifying what stays invariant across the pairs.
+
+### Implies (consequence)
+
+Functional relationships are demonstrated by paired instances where
+the left side determines the right. The receiver sees the pattern
+across multiple examples.
 
 <AudioPlayer
   src="/audio/v4_5/p12_implies_multi.wav"
@@ -108,7 +177,7 @@ multiple examples.
   description="Four pairs: (2 pulses, 2:1 ratio), (3 pulses, 3:1), (4 pulses, 4:1), (5 pulses, 5:1)"
 />
 
-## Function (input-output map)
+### Function (input-output map)
 
 A mathematical map from inputs to outputs is shown via paired
 (input, output) instances. The receiver derives the function from
@@ -120,6 +189,32 @@ the examples.
   description="Six pairs showing the doubling map: (1,2), (2,4), (3,6), (4,8), (5,10), (6,12)"
 />
 
+### Equal (computational equivalence)
+
+Two expressions can be structurally different but evaluate to the same
+thing. Equal is demonstrated by paired instances where the left and
+right side are not the same shape but reduce to the same value across
+multiple examples.
+
+<AudioPlayer
+  src="/audio/v4_5/p10_equal_multi.wav"
+  label="multi-instance equality"
+  description="Paired expressions that differ in form but match in value"
+/>
+
+### Negate (additive inverse, cancellation)
+
+A content combined with its phase-inverse cancels to silence. Demonstrated
+by paired instances: on the left, a content; on the right, that content
+superposed with its inverse, which sums to silence. Across different
+inputs the receiver sees the operator that maps "anything" to "zero."
+
+<AudioPlayer
+  src="/audio/v4_5/p9_negate_multi.wav"
+  label="multi-instance negation"
+  description="Several inputs and their cancellations; each right side sums to silence"
+/>
+
 ## What this is for
 
 These primitives are the substrate for both tracks of the project:
@@ -128,5 +223,12 @@ These primitives are the substrate for both tracks of the project:
   form of communication.
 - **Track B** uses them as the building blocks of an efficient data
   codec.
+
+The vocabulary is small on purpose. Each addition has to clear the
+same bar: a receiver who shares only mathematics and acoustic physics
+must be able to derive its meaning from the audio alone. New primitives
+land when a piece of math we want to express is not reachable from the
+current set. Most expressive range comes from composition, the way
+arithmetic uses a handful of operators to reach the infinite.
 
 The code that renders this audio is in [the public repo](https://github.com/CitadelAI-Atlas/project-continua).

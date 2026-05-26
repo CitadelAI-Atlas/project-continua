@@ -21,11 +21,11 @@ export const metadata: Metadata = {
 function Nav() {
   return (
     <nav className="border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur sticky top-0 z-10">
-      <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="/" className="font-semibold tracking-tight text-lg">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+        <a href="/" className="font-semibold tracking-tight text-base sm:text-lg">
           Project Continua
         </a>
-        <div className="flex gap-6 text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 sm:gap-6 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
           <a href="/vocabulary" className="hover:text-blue-600 dark:hover:text-blue-400">
             Vocabulary
           </a>
@@ -55,8 +55,8 @@ function Nav() {
 function Footer() {
   return (
     <footer className="mt-16 border-t border-zinc-200 dark:border-zinc-800">
-      <div className="max-w-4xl mx-auto px-6 py-8 text-sm text-zinc-500 dark:text-zinc-400">
-        <div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="break-words">
           Project Continua. Public research log. Code at{" "}
           <a
             href="https://github.com/CitadelAI-Atlas/project-continua"
@@ -67,7 +67,14 @@ function Footer() {
           .
         </div>
         <div className="mt-1">
-          Audio examples are CC-BY (preliminary). Code license TBD.
+          Audio examples are CC-BY (preliminary). Code is{" "}
+          <a
+            href="https://github.com/CitadelAI-Atlas/project-continua/blob/main/LICENSE"
+            className="text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            MIT licensed
+          </a>
+          .
         </div>
       </div>
     </footer>
@@ -86,7 +93,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
         <Nav />
-        <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+        <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8">
           {children}
         </main>
         <Footer />

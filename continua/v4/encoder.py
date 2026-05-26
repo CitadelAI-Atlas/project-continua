@@ -179,19 +179,28 @@ def render_period(period_s: float, content_buf: np.ndarray,
                     n_repeats: int = PERIOD_REPEATS) -> np.ndarray:
     """Render content repeated at given period for n_repeats cycles.
 
-    The content is clamped to fit within 70% of the period so each
-    repetition is followed by a silence gap. This ensures the
-    periodic structure is observable to a listener (the gaps between
-    repetitions reveal the period directly).
+    The content must occupy at most 70% of the period so each repetition
+    is followed by a silence gap, which is what makes the periodic
+    structure observable to the receiver (the gaps reveal the period
+    directly).
+
+    v4.7 change: earlier versions silently truncated content that didn't
+    fit, losing data the receiver could not recover (surfaced by the AI
+    receiver experiment). v4.7 extends the period instead so the full
+    content survives, and emits a stderr warning so the caller knows the
+    rendered period differs from the requested one.
     """
+    import sys
+    content_dur_s = content_buf.shape[0] / SAMPLE_RATE
+    min_period_s = content_dur_s / 0.70
+    if period_s < min_period_s:
+        print(f"[continua/v4] PERIOD: content {content_dur_s:.3f}s requires "
+              f"period >= {min_period_s:.3f}s for a visible gap; "
+              f"requested {period_s:.3f}s. Extending to {min_period_s:.3f}s "
+              f"to preserve content (was silently truncated in pre-v4.7).",
+              file=sys.stderr)
+        period_s = min_period_s
     period_n = int(SAMPLE_RATE * period_s)
-    # truncate content so repetitions don't overlap and gaps are visible
-    max_content_n = int(period_n * 0.70)
-    if content_buf.shape[0] > max_content_n:
-        clip = content_buf[:max_content_n].copy()
-        # re-envelope the clipped content
-        clip *= _envelope(len(clip), attack_ms=8, release_ms=8)
-        content_buf = clip
     total_n = period_n * n_repeats
     out = np.zeros(total_n, dtype=np.float32)
     for k in range(n_repeats):
@@ -219,6 +228,36 @@ def _envelope_dynamic_range(buf: np.ndarray) -> float:
     return peak / mean
 
 
+def _pulse_train_gating_envelope(buf: np.ndarray,
+                                    min_gate: float = 0.18) -> np.ndarray:
+    """Extract a slow envelope from a pulse-train buffer, normalize it to
+    [min_gate, 1.0], and resample back to the buffer's length. Used by
+    render_and to gate sustained components synchronously with the pulses
+    so the sustained tone doesn't mask the pulse gaps. min_gate=0.18
+    keeps a small amount of the sustained component audible during the
+    pulse gaps (so spectral identification still works) while letting
+    the envelope drop enough that pulse detection succeeds.
+    """
+    env = np.abs(buf)
+    win = max(1, int(SAMPLE_RATE * 0.020))
+    n_blocks = len(env) // win
+    if n_blocks < 2:
+        return np.ones_like(buf)
+    trimmed = env[: n_blocks * win].reshape(n_blocks, win)
+    rms = np.sqrt(np.mean(trimmed * trimmed, axis=1)).astype(np.float32)
+    peak = float(rms.max()) or 1.0
+    norm = rms / peak
+    norm = min_gate + (1.0 - min_gate) * norm
+    # Upsample back to sample rate by repeating each block's value
+    sample_env = np.repeat(norm, win).astype(np.float32)
+    if sample_env.shape[0] < buf.shape[0]:
+        sample_env = np.pad(sample_env, (0, buf.shape[0] - sample_env.shape[0]),
+                                constant_values=min_gate)
+    else:
+        sample_env = sample_env[: buf.shape[0]]
+    return sample_env
+
+
 def render_and(arg_bufs) -> np.ndarray:
     """Superposition of all arguments.
 
@@ -226,28 +265,44 @@ def render_and(arg_bufs) -> np.ndarray:
     characters (e.g., a pulse-train COUNT with a sustained RATIO dyad),
     the sustained component's continuous amplitude masks the pulse-train's
     gaps in the envelope - the analyzer then detects the AND as a single
-    long pulse rather than as N modulated events. Compensate by scaling
-    sustained-character components down so the pulse-train modulation
-    survives in the combined envelope.
+    long pulse rather than as N modulated events. v4.5 compensated by
+    scaling sustained components to 1/3 amplitude, which worked for wide
+    intervals (2:1, 3:2) but failed for tight ones (4:3, 5:4) where the
+    dyad's natural beating raised the per-cycle envelope above what 1/3
+    scaling suppressed.
+
+    v4.6 fix: gate each sustained component with the pulse-train's
+    envelope, so the sustained tone briefly dips when the pulses are
+    silent. This is amplitude modulation synchronized to the pulse
+    cadence - the sustained spectrum still carries the RATIO information
+    (the modulation produces sidebands but the dominant peaks remain at
+    the dyad frequencies), and the pulse envelope survives the
+    superposition regardless of how tight the interval is.
     """
     arg_bufs = list(arg_bufs)
     if len(arg_bufs) < 2:
         return _mix_to_length(arg_bufs)
-    # Classify each arg by envelope dynamic range - sustained tones have ~1.0,
-    # pulse trains have ≥2.0 (peak much higher than mean).
     drs = [_envelope_dynamic_range(b) for b in arg_bufs]
     max_dr = max(drs)
-    # If at least one arg is clearly a pulse train (DR ≥ 2.0) and others are
-    # sustained (DR < 1.5), scale sustained ones to 1/3 amplitude so the pulse
-    # train's gaps become visible in the combined envelope.
     if max_dr >= 2.0 and any(dr < 1.5 for dr in drs):
-        scaled = []
-        for buf, dr in zip(arg_bufs, drs):
-            if dr < 1.5:
-                scaled.append((buf * 0.33).astype(np.float32))
+        # Find a pulse-train arg whose envelope we will use to gate the others
+        pulse_idx = int(np.argmax(drs))
+        gating_env = _pulse_train_gating_envelope(arg_bufs[pulse_idx])
+        gated = []
+        for i, buf in enumerate(arg_bufs):
+            if i == pulse_idx or drs[i] >= 1.5:
+                gated.append(buf)
             else:
-                scaled.append(buf)
-        return _mix_to_length(scaled)
+                # Pad gating envelope to match this buffer's length if needed
+                env_use = gating_env
+                if env_use.shape[0] < buf.shape[0]:
+                    pad = np.full(buf.shape[0] - env_use.shape[0],
+                                    0.18, dtype=np.float32)
+                    env_use = np.concatenate([env_use, pad])
+                elif env_use.shape[0] > buf.shape[0]:
+                    env_use = env_use[: buf.shape[0]]
+                gated.append((buf * env_use).astype(np.float32))
+        return _mix_to_length(gated)
     return _mix_to_length(arg_bufs)
 
 
@@ -348,6 +403,25 @@ def render_multi_instance_lesser(endpoint_pairs=None,
     return _concat(*parts)
 
 
+TRANSFORMATION_STEP_S = 3.0  # v4.8: each plateau in TRANSFORMATION holds this long
+
+
+def render_transformation(freqs, step_s: float = TRANSFORMATION_STEP_S) -> np.ndarray:
+    """v4.8: a sequence of stable tones at the given frequencies, each held
+    for step_s seconds (default 3.0). Distinct from BECOMES (continuous
+    glide between two values) and from SEQUENCE (separate audio events
+    with silence gaps). The signal is f(t) = freq_i during the i-th step;
+    transitions are sample-level discrete, smoothed only by _sine's
+    short attack/release envelope to suppress clicks. A receiver
+    running a windowed FFT sees a clean step function in the dominant
+    frequency over time; the mathematical content is the ordered list
+    of frequencies, with each plateau being its own stable value."""
+    parts = []
+    for f in freqs:
+        parts.append(_sine(float(f), step_s, amp=0.35))
+    return _concat(*parts)
+
+
 def render_negate_multi(content_bufs,
                           intra_gap: float = PAIR_INTRA_GAP,
                           inter_gap: float = PAIR_INTER_GAP) -> np.ndarray:
@@ -406,6 +480,8 @@ def render_expr(node: dict) -> np.ndarray:
     if op == "NEGATE_MULTI":
         content_bufs = [render_expr(c) for c in args]
         return render_negate_multi(content_bufs)
+    if op == "TRANSFORMATION":
+        return render_transformation(args)
     raise ValueError(f"unknown op {op}")
 
 

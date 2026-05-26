@@ -14,7 +14,15 @@ function makeContext(): AudioContext {
   }).AudioContext ?? (window as unknown as {
     webkitAudioContext: typeof AudioContext;
   }).webkitAudioContext;
-  return new AC();
+  const ctx = new AC();
+  // iOS Safari starts every AudioContext in the "suspended" state and only
+  // transitions to "running" after an explicit resume() call from within a
+  // user gesture. Since playSymbol is always invoked from a click handler,
+  // the resume here lands inside that gesture. No-op on browsers where the
+  // context starts running. Without this, v1/v2 dashboards are silent on
+  // mobile while desktop browsers play normally.
+  void ctx.resume().catch(() => undefined);
+  return ctx;
 }
 
 function applyEnvelope(

@@ -1,6 +1,27 @@
 // Most-recent first. New versions land at the TOP of this list.
 const outputs = [
   {
+    href: "/research/decode-experiment",
+    title: "AI receiver: math messages over audio",
+    period: "May 2026",
+    blurb:
+      "Six v4 math expressions, two encoding paths (math-native vs OFDM with vocabulary lookup), three noise conditions. The receiver is told math messages are coming and given the vocabulary. v0 single-receiver result; cross-model run queued.",
+  },
+  {
+    href: "/research/bandwidth",
+    title: "Acoustic bandwidth: a baseline",
+    period: "May 2026",
+    blurb:
+      "What's the upper bound for audio data channels? A straightforward 64-subcarrier OFDM encoder/decoder, benchmarked across white, pink, and reverb noise, with Shannon-Hartley context and a comparison to the meaning-preserving math-native codec.",
+  },
+  {
+    href: "/research/codec",
+    title: "Codec: building Track B",
+    period: "May 2026",
+    blurb:
+      "Five-round optimization of a composed codec on top of the v4 vocabulary. Symbol repetition, multi-band parallel symbols, Hamming(7,4) FEC, pilot-tone calibration, plus a full bake-off across white, pink, and reverberant noise.",
+  },
+  {
     href: "/research/v5",
     title: "v5: raw-audio protocol",
     period: "May 2026",

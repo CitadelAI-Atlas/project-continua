@@ -1,0 +1,103 @@
+{
+  "schema": "continua-ofdm-demo/2",
+  "payload_text": "continua is a math-native channel",
+  "payload_bits": 264,
+  "raw_bits_per_sec": 528.0,
+  "ofdm_carriers": 64,
+  "ofdm_spacing_hz": 50.0,
+  "ofdm_symbol_s": 0.1,
+  "settings": [
+    {
+      "slug": "clean",
+      "label": "Clean (no noise added)",
+      "noise": "none",
+      "snr_db": null,
+      "wav": "/bandwidth/demo/clean.wav",
+      "duration_s": 0.5,
+      "avg_ber": 0.0,
+      "decoded": "continua is a math-native channel"
+    },
+    {
+      "slug": "white_20db",
+      "label": "White noise, +20 dB SNR",
+      "noise": "white",
+      "snr_db": 20.0,
+      "wav": "/bandwidth/demo/white_20db.wav",
+      "duration_s": 0.5,
+      "avg_ber": 0.0,
+      "decoded": "continua is a math-native channel"
+    },
+    {
+      "slug": "white_10db",
+      "label": "White noise, +10 dB SNR",
+      "noise": "white",
+      "snr_db": 10.0,
+      "wav": "/bandwidth/demo/white_10db.wav",
+      "duration_s": 0.5,
+      "avg_ber": 0.0,
+      "decoded": "continua is a math-native channel"
+    },
+    {
+      "slug": "white_0db",
+      "label": "White noise, 0 dB SNR",
+      "noise": "white",
+      "snr_db": 0.0,
+      "wav": "/bandwidth/demo/white_0db.wav",
+      "duration_s": 0.5,
+      "avg_ber": 0.0,
+      "decoded": "continua is a math-native channel"
+    },
+    {
+      "slug": "reverb_10db",
+      "label": "Small-room reverb, +10 dB direct-to-reverb",
+      "noise": "reverb",
+      "snr_db": 10.0,
+      "wav": "/bandwidth/demo/reverb_10db.wav",
+      "duration_s": 0.5,
+      "avg_ber": 0.0,
+      "decoded": "continua is a math-native channel"
+    },
+    {
+      "slug": "reverb_0db",
+      "label": "Small-room reverb, 0 dB direct-to-reverb",
+      "noise": "reverb",
+      "snr_db": 0.0,
+      "wav": "/bandwidth/demo/reverb_0db.wav",
+      "duration_s": 0.5,
+      "avg_ber": 0.07054924242424243,
+      "decoded": "sonTin}a4qs.a Matp-NadAve cHa~Fe|"
+    }
+  ],
+  "schemes": [
+    {
+      "slug": "bpsk",
+      "scheme": "BPSK",
+      "wav": "/bandwidth/demo/scheme_bpsk.wav",
+      "bits_per_carrier": 1,
+      "duration_s": 0.5,
+      "raw_bits_per_sec": 528.0,
+      "decoded": "continua is a math-native channel",
+      "ber": 0.0
+    },
+    {
+      "slug": "qpsk",
+      "scheme": "QPSK",
+      "wav": "/bandwidth/demo/scheme_qpsk.wav",
+      "bits_per_carrier": 2,
+      "duration_s": 0.3,
+      "raw_bits_per_sec": 880.0,
+      "decoded": "continua is a math-native channel",
+      "ber": 0.0
+    },
+    {
+      "slug": "qam16",
+      "scheme": "16-QAM",
+      "wav": "/bandwidth/demo/scheme_qam16.wav",
+      "bits_per_carrier": 4,
+      "duration_s": 0.2,
+      "raw_bits_per_sec": 1320.0,
+      "decoded": "continua is a math-native channel",
+      "ber": 0.0
+    }
+  ]
+}

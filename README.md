@@ -1,52 +1,89 @@
 # Project Continua
 
 Math-native acoustic communication. Audio designed so that the math IS the
-meaning, not a label on top of it.
+meaning, not a label sitting on top of it.
 
-**Live site:** [projectcontinua.ai](https://projectcontinua.ai) (in progress at [project-continua.vercel.app](https://project-continua.vercel.app))
+**Live site:** [project-continua.vercel.app](https://project-continua.vercel.app)
 
 ## What it is
 
 Project Continua is building a small vocabulary of audio primitives whose
-meaning is grounded in shared math and physics: integer frequency ratios,
-periodic timing, continuous transformation, co-presence, ordered sequence.
-The primitives compose into higher-level statements the way notes compose
-into chords or words into sentences.
+meaning is the sound's mathematical structure itself: integer frequency
+ratios, periodic timing, continuous transformation, discrete state
+sequences, co-presence, ordered sequence, ostensive demonstration. The
+primitives compose into higher-level statements the way notes compose into
+chords or words into sentences.
 
 The work runs along two complementary tracks:
 
 - **Track A: teach humans this language.** Use math-native audio as a
   medium humans can learn to perceive, internalize, and use fluently.
+  The current v4 dashboard at `/dashboards/v4` is a Learn / Test / History
+  flow for the seven cross-model-stable primitives, with speech-to-text
+  input for free-response answers.
 - **Track B: build it as an efficient codec.** Math-native encoding as a
   high-density, low-overhead channel for transmitting rich data via audio.
+  See `/research/codec` on the live site for the five-round optimization
+  pass and the bake-off across white, pink, and reverberant noise.
 
-## Running locally
+A third research thread (`/research/bandwidth`) measures the raw
+acoustic-channel ceiling via a textbook OFDM design (BPSK / QPSK / 16-QAM
+across 64 subcarriers), so the math-native trade-off can be quantified
+against a fair upper bound.
 
-Requires Python 3.9+, numpy, scipy, and Flask.
+The AI-receiver experiment at `/research/decode-experiment` sends math
+expressions through both encoding paths and asks an AI receiver, given
+the v4 vocabulary, to decode the audio.
 
-```bash
-pip3 install -r requirements.txt
-python3 app.py  # http://localhost:5173
-```
-
-## Layout
+## Repository layout
 
 ```
 project-continua/
-├── continua/          # Python package (encoder, analyzer, vocabulary)
-├── data/wavs/         # Rendered audio examples
-├── scripts/           # Render and utility scripts
+├── continua/          # Python: encoder, analyzer, vocabulary, codec, OFDM
+├── data/wavs/         # Rendered audio examples (committed; part of the research)
+├── scripts/           # Render, benchmark, and bake-off scripts
 ├── tests/             # Benchmark suites
-├── web/               # Public website (Next.js + MDX)
-├── static/            # Browser dashboard for the learn-and-test flow
-└── app.py             # Flask server for the dashboard
+└── web/               # Public website (Next.js + MDX + Tailwind v4)
 ```
+
+## Running the site locally
+
+```bash
+cd web
+npm install
+npm run dev    # http://localhost:3000
+```
+
+## Running benchmarks locally
+
+```bash
+pip3 install -r requirements.txt
+python3 scripts/codec_benchmark.py --trials 10
+python3 scripts/ofdm_benchmark.py --trials 16
+python3 scripts/codec_bakeoff.py --trials 12
+```
+
+Each benchmark writes per-cell JSON results to `private/data/` (gitignored).
+The public site embeds chart images rendered from those results by
+`scripts/codec_bakeoff_charts.py`.
+
+## Internal records
+
+The working copy of this repository carries additional local-only files
+(session handoff notes, methodology drafts, per-iteration raw results,
+pre-registration documents) that are intentionally gitignored under
+`private/`. The public artifacts are the website plus the code in this
+repo; internal records stay local to keep the public face curated without
+hiding the underlying mechanics, which are all reproducible from the code
+here.
 
 ## Lineage
 
 Pythagorean music-as-math; Hans Freudenthal's *Lincos* (1960); SETI / METI;
-contemporary research on receiver-derivable mathematical encodings.
+contemporary research on receiver-derivable mathematical encodings; the
+stenotype machine, where a court reporter's chord-keying inspired the
+project's framing of simultaneity as bandwidth.
 
 ## License
 
-Code license TBD. Audio examples CC-BY (preliminary).
+[MIT](LICENSE) for the code. Audio examples are CC-BY (preliminary).

@@ -42,6 +42,13 @@ OPS: Tuple[str, ...] = (
                        # The right side of each pair is silence (cancellation). Across
                        # different inputs, the receiver derives "this operator produces
                        # silence from any input" - additive inverse via ostensive demo.
+    # v4.8 addition
+    "TRANSFORMATION", # TRANSFORMATION(f1, f2, f3, ...) -> sequence of stable tones at f_i Hz,
+                       # each held for a fixed step duration with sample-level discrete
+                       # transitions. Distinct from BECOMES (continuous glide between two
+                       # values) and from SEQUENCE (separate audio events with silence
+                       # gaps). The mathematical content is a piecewise-constant step
+                       # function whose value at each step IS the rendered frequency.
 )
 
 # Operations that take numeric scalar args (rendered into the audio params)
@@ -132,6 +139,10 @@ def _validate_expr(node: Any, path: str = "$") -> None:
             raise ValidationError(path, "NEGATE_MULTI requires at least 2 content args")
         for i, c in enumerate(args):
             _validate_expr(c, f"{path}.args[{i}]")
+    elif op == "TRANSFORMATION":
+        if len(args) < 2 or not all(isinstance(a, (int, float)) and a > 0 for a in args):
+            raise ValidationError(path,
+                "TRANSFORMATION requires at least 2 positive frequency values")
 
 
 def validate_message(msg: dict) -> None:
@@ -180,4 +191,6 @@ def gloss(node: dict) -> str:
     if op == "NEGATE_MULTI":
         contents = ", ".join(f"[{gloss(c)} + ¬{gloss(c)} = 0]" for c in args)
         return f"NEGATE_MULTI({contents})"
+    if op == "TRANSFORMATION":
+        return "TRANSFORMATION(" + " -> ".join(f"{f}Hz" for f in args) + ")"
     return op

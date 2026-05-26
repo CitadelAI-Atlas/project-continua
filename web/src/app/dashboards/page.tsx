@@ -1,6 +1,13 @@
 // Most-recent first. New dashboards land at the TOP of this list.
 const dashboards = [
   {
+    href: "/dashboards/v4",
+    title: "v4 study and test",
+    blurb:
+      "Seven receiver-derivable primitives from the current canonical vocabulary: COUNT, PERIOD, RATIO, BECOMES, AND, IMPLIES_MULTI, FUNCTION_MULTI. Curriculum-driven Learn mode plus a Test mode with either multiple-choice or free-response answers (typed or spoken).",
+    available: true,
+  },
+  {
     href: "/dashboards/v2",
     title: "v2 study and test",
     blurb:

@@ -1,0 +1,307 @@
+export const metadata = {
+  title: "Acoustic bandwidth: a baseline | Project Continua",
+};
+
+# Acoustic bandwidth: a baseline
+
+**Period:** May 2026
+**Status:** baseline established, comparison to math-native codec in place
+
+## The question this thread asks
+
+How much data per second can be carried by a sound wave? Not the
+meaning-preserving question that the math-native codec asks, but the
+raw engineering one: ignoring any constraint about what the audio
+"means," what's the channel actually capable of?
+
+This page is the bandwidth baseline. It exists to put the math-native
+codec's numbers in perspective: when the math-native codec carries 1.94
+bits per second on a clean channel, is that close to the physical
+ceiling for audio data, or far below it? Without a baseline, we cannot
+tell.
+
+## The physical ceiling
+
+Shannon and Hartley gave the answer in 1949. For a channel of
+bandwidth `B` (in Hertz) and signal-to-noise ratio `S/N`:
+
+> **C = B × log₂(1 + S/N)** bits per second
+
+The audible band is roughly **20 kHz wide**. At a moderate SNR of
+30 dB (signal-to-noise ratio of 1000:1):
+
+> C ≈ 20,000 × log₂(1001) ≈ **200 kbps**
+
+That is the absolute physical ceiling for an audio data channel
+in clean conditions. It is the number we are working toward when we
+ask "how high can we push the bandwidth axis."
+
+Comparison points from the engineering literature:
+
+- **V.92 dial-up modem**: 56 kbps over a 3 kHz audio-bandwidth phone
+  line. Within an order of magnitude of the Shannon ceiling for that
+  narrow band.
+- **DTMF (touch-tone telephone)**: ~10 bps, ~3 kHz bandwidth, designed
+  for human-comprehensible reliability over very noisy phone lines.
+- **Chirp.io / Google Nearby (audio data sharing)**: ~1-2 kbps, full
+  audio band, designed for short-range broadcast through speakers and
+  mics in noisy real-world environments.
+- **Math-native codec (this project, baseline)**:
+  [1.94 bps clean, 3.66 bps with multi-band](/research/codec). Many
+  orders of magnitude below the ceiling, because the symbol vocabulary
+  is designed for derivability rather than throughput.
+
+## The design
+
+To put a concrete number against the ceiling, we built a straightforward
+OFDM (orthogonal frequency-division multiplexing) encoder/decoder. OFDM
+is the textbook approach for packing maximum bits into a band: divide
+the spectrum into many narrow subcarriers and modulate each one
+independently. It is what WiFi, 4G LTE, 5G, DVB-T, and most modern
+audio data systems use.
+
+Our configuration:
+
+- **64 subcarriers** spaced 50 Hz apart, from 200 Hz to 3350 Hz
+- Three modulation schemes per subcarrier:
+  - **BPSK** (binary phase-shift keying): 1 bit per subcarrier, encoded
+    as phase 0 or pi
+  - **QPSK** (quadrature phase-shift keying): 2 bits per subcarrier,
+    encoded in the four quadrants of the complex plane with Gray coding
+  - **16-QAM** (16-point quadrature amplitude modulation): 4 bits per
+    subcarrier, encoded as a 4x4 grid of in-phase and quadrature
+    amplitudes
+- **100 ms symbol duration**, no inter-symbol gap
+- Carrier frequencies aligned to the FFT bin grid (every 5th bin at 50
+  Hz spacing) so per-carrier phase rotation is zero and QPSK / QAM
+  decoding survives without timing-recovery scaffolding
+- Hanning window for spectral leakage suppression
+- No FEC, no cyclic prefix, no timing sync
+
+Raw rates: BPSK **640 bps**, QPSK **1280 bps**, 16-QAM **2560 bps**.
+
+The implementation is one file (`continua/codec_ofdm.py`), about 300
+lines including the three constellation mappers. The design priority
+was clarity of comparison, not absolute performance. A production
+audio modem with stronger FEC and a longer-window code would carry
+several kilobits per second reliably; this is the simplest honest
+OFDM.
+
+## Results
+
+The benchmark sweeps BER (bit error rate) across the same noise types
+used for the math-native codec: additive white, additive pink, and
+small-room algorithmic reverb at RT60 about 0.35 seconds, for each
+modulation scheme.
+
+| Scheme | Raw bps | White 1%-BER floor | Pink 1%-BER floor | Reverb 1%-BER floor |
+|---|---|---|---|---|
+| BPSK   | 640  | -5 dB SNR | -5 dB SNR | +5 dB |
+| QPSK   | 1280 | -5 dB SNR | 0 dB SNR  | +10 dB |
+| 16-QAM | 2560 | +30 dB SNR | +30 dB SNR | (none in sweep) |
+
+The constellation density-vs-margin trade is the central engineering
+finding here. Each step from BPSK to QPSK to 16-QAM doubles raw
+throughput but costs noise margin. BPSK and QPSK are almost identical
+in robustness because their constellation points are equally distant
+from the origin (the only thing the demodulator has to detect under
+noise is sign); 16-QAM crowds 16 points into the same complex plane
+and any of the four amplitude levels can be misread when noise is
+above a few dB of constellation spacing.
+
+A few observations worth surfacing:
+
+- **BPSK at 640 bps clean is about 330x the math-native codec's 1.94 bps.
+  QPSK and 16-QAM stretch the gap to 660x and 1320x respectively.**
+  The cost of meaning-preservation is two to three orders of magnitude
+  of throughput, depending on which OFDM scheme you compare against.
+  That cost is what we are buying when we use the math-native
+  vocabulary.
+- **OFDM has graceful BER degradation, no sharp cliff.** Where the
+  math-native codec falls off a cliff at +15 dB additive noise
+  (going from 0% BER to 50% in 5 dB), BPSK OFDM's BER rises smoothly:
+  0% at +5 dB, 6% at -5 dB, 13% at -10 dB. The graceful curve comes
+  from the per-subcarrier independence; only the worst-noise
+  subcarriers flip while the rest continue to decode.
+- **OFDM is reverb-fragile where the math-native codec was reverb-friendly.**
+  This is the most interesting finding in the comparison. Reverb
+  scrambles inter-symbol phase relationships, which is exactly what
+  OFDM's BPSK demodulation depends on; the math-native codec
+  identifies symbols spectrally rather than by phase and is therefore
+  immune. BPSK OFDM needs +5 dB reverb to stay below 1% BER; 16-QAM
+  is fundamentally broken in reverb even at +30 dB direct-to-reverb
+  ratio (6.7% BER at the cleanest setting).
+
+The two designs make exactly opposite trades. OFDM trades meaning for
+throughput, and the constellation choice trades phase-based robustness
+for broadband-noise-graceful degradation. The math-native codec trades
+throughput for meaning, and the spectral-identification choice trades
+phase-based throughput for reverb robustness. They are complementary,
+not competing.
+
+## Constellation density: hear it
+
+Same payload `continua is a math-native channel` (33 bytes, 264 bits)
+encoded by each modulation scheme on a clean channel. Each step up in
+constellation density cuts the audio duration by roughly half. The
+clips sound progressively more like a brief noise burst as the
+density increases, because more bits are packed into the same time
+window.
+
+<div className="my-6 overflow-x-auto">
+  <table className="w-full text-sm border border-zinc-200 dark:border-zinc-800 rounded">
+    <thead className="bg-zinc-50 dark:bg-zinc-900 text-left">
+      <tr>
+        <th className="px-3 py-2 font-semibold">Scheme</th>
+        <th className="px-3 py-2 font-semibold">Bits / subcarrier</th>
+        <th className="px-3 py-2 font-semibold">Listen</th>
+        <th className="px-3 py-2 font-semibold text-right">Audio duration</th>
+        <th className="px-3 py-2 font-semibold text-right">Raw bps (this payload)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2 font-mono">BPSK</td>
+        <td className="px-3 py-2">1</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/scheme_bpsk.wav" className="h-8" /></td>
+        <td className="px-3 py-2 text-right font-mono">0.50 s</td>
+        <td className="px-3 py-2 text-right font-mono">528</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2 font-mono">QPSK</td>
+        <td className="px-3 py-2">2</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/scheme_qpsk.wav" className="h-8" /></td>
+        <td className="px-3 py-2 text-right font-mono">0.30 s</td>
+        <td className="px-3 py-2 text-right font-mono">880</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2 font-mono">16-QAM</td>
+        <td className="px-3 py-2">4</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/scheme_qam16.wav" className="h-8" /></td>
+        <td className="px-3 py-2 text-right font-mono">0.20 s</td>
+        <td className="px-3 py-2 text-right font-mono">1320</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+A small accounting note for the "raw bps (this payload)" column: with
+a 33-byte (264-bit) payload, each scheme rounds up to a whole number
+of OFDM symbols, so the effective rate is slightly below the
+theoretical 640 / 1280 / 2560 bps. BPSK takes 5 symbols (320 bits
+capacity), QPSK takes 3 symbols (384 bits), 16-QAM takes 2 symbols
+(512 bits). For payloads that fill the constellation exactly the
+quoted theoretical rates are what you get.
+
+## Hear it work
+
+The same payload `continua is a math-native channel` (33 bytes, 264
+bits) encoded by OFDM at several noise conditions. Total audio is
+about half a second; compare that to the math-native codec, which
+takes about three seconds to carry the same payload.
+
+<div className="my-6 overflow-x-auto">
+  <table className="w-full text-sm border border-zinc-200 dark:border-zinc-800 rounded">
+    <thead className="bg-zinc-50 dark:bg-zinc-900 text-left">
+      <tr>
+        <th className="px-3 py-2 font-semibold">Channel</th>
+        <th className="px-3 py-2 font-semibold">Listen</th>
+        <th className="px-3 py-2 font-semibold">Decoded</th>
+        <th className="px-3 py-2 font-semibold text-right">BER</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">Clean</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/clean.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono text-xs">continua is a math-native channel</td>
+        <td className="px-3 py-2 text-right font-mono text-green-600 dark:text-green-400">0.0%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">White noise, +20 dB SNR</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/white_20db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono text-xs">continua is a math-native channel</td>
+        <td className="px-3 py-2 text-right font-mono text-green-600 dark:text-green-400">0.0%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">White noise, +10 dB SNR</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/white_10db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono text-xs">continua is a math-native channel</td>
+        <td className="px-3 py-2 text-right font-mono text-green-600 dark:text-green-400">0.0%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">White noise, 0 dB SNR</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/white_0db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono text-xs">continu. is a math-native"ch`nnel</td>
+        <td className="px-3 py-2 text-right font-mono text-amber-600 dark:text-amber-400">1.0%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">Reverb, +10 dB direct-to-reverb</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/reverb_10db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono text-xs">#.ntin7a`is.a /a4h-.at+v% c.an,e,</td>
+        <td className="px-3 py-2 text-right font-mono text-amber-600 dark:text-amber-400">2.9%</td>
+      </tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800">
+        <td className="px-3 py-2">Reverb, 0 dB direct-to-reverb</td>
+        <td className="px-3 py-2"><audio controls preload="none" src="/bandwidth/demo/reverb_0db.wav" className="h-8" /></td>
+        <td className="px-3 py-2 font-mono text-xs">a?^.I%c##;CAAB..v8..A&gt;..fpS.A,x.o</td>
+        <td className="px-3 py-2 text-right font-mono text-red-600 dark:text-red-400">17.9%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+The clean OFDM clip sounds like a brief noise burst with tonal
+structure, very different from the math-native codec's pulse-and-dyad
+rhythm. The reverb clips audibly drift further from the clean reading
+as the reverb gets louder, which matches the BER column.
+
+## How this relates to the math-native codec
+
+The math-native codec at [/research/codec](/research/codec) is the
+project's research output along the meaning-preserving axis. The
+bandwidth baseline on this page is a comparator, not a competitor.
+Two questions are being asked in parallel:
+
+1. **How much data per second can be carried** by a sound wave (this
+   page).
+2. **How much of that throughput can be preserved while keeping the
+   audio's mathematical structure self-describing** (the math-native
+   codec page).
+
+The gap between the two is the cost of meaning-preservation in
+acoustic data, quantified. Today that gap ranges from 330x (math-
+native baseline 1.94 bps vs OFDM BPSK 640 bps) to 1320x (vs OFDM
+16-QAM 2560 bps). A future direction is a hybrid that layers OFDM in
+the upper spectrum on top of math-native primitives in the lower
+spectrum: the math-native lower band carries the self-describing
+bootstrap layer that a fresh receiver can derive from physics and
+arithmetic alone; the OFDM upper band carries high-throughput payload
+once the receiver has decoded the bootstrap. This would preserve the
+meaning-bearing claim while bringing the throughput close to the
+ceiling.
+
+## Future work in this thread
+
+- **QPSK or 16-QAM**: doubles or quadruples bits per subcarrier at
+  the cost of additional noise sensitivity. Brings the channel into
+  the kilobit-per-second range.
+- **Forward error correction**: a Reed-Solomon or convolutional code
+  on top of OFDM pulls the SNR floor down several dB.
+- **Pilot subcarriers for timing sync**: real OFDM systems include
+  a few subcarriers carrying a known pattern so the receiver can lock
+  on without being told the exact symbol boundary. This work assumes
+  perfect sync; pilots remove that assumption.
+- **Hybrid math-native + OFDM**: math-native primitives in the lower
+  spectrum (rhythm, intervals, glides, audible structure) carrying
+  the self-describing layer; OFDM in the upper spectrum carrying bulk
+  payload. The receiver decodes the math-native layer first to
+  bootstrap, then uses the OFDM layer for high-throughput data.
+
+## Source
+
+- OFDM implementation: `continua/codec_ofdm.py`
+- Benchmark: `scripts/ofdm_benchmark.py`
+- Demo render: `scripts/ofdm_demo_render.py`
+- All code in the public repository at
+  [github.com/CitadelAI-Atlas/project-continua](https://github.com/CitadelAI-Atlas/project-continua).

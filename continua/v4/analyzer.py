@@ -322,6 +322,81 @@ def detect_silence_after_pulses(samples: np.ndarray) -> float:
     return float(np.mean(gaps)) if gaps else 0.0
 
 
+# v4.9: time-windowed spectral analysis. The other analyzer functions all
+# aggregate across the whole clip, which is the right call for primitives
+# whose meaning is invariant under time (RATIO's spectral content, PERIOD's
+# autocorrelation). For primitives whose meaning IS the time-ordering of
+# spectral content (TRANSFORMATION: a step function in dominant frequency),
+# we need a per-window spectral pass.
+
+
+def spectrogram_steps(samples: np.ndarray,
+                        window_ms: float = 100.0,
+                        hop_ms: float = 50.0,
+                        freq_tol_pct: float = 0.025,
+                        min_plateau_ms: float = 200.0
+                        ) -> List[Tuple[float, float, float]]:
+    """Return time-ordered stable-frequency plateaus.
+
+    Slides a short FFT window across the signal, picks the dominant peak per
+    window, and groups consecutive windows whose dominant peak is within
+    freq_tol_pct of each other into plateaus. Returns a list of
+    (start_s, end_s, peak_freq_hz) tuples for each plateau that lasts at
+    least min_plateau_ms milliseconds.
+
+    Use this for TRANSFORMATION decoding (ordered step sequence of stable
+    frequencies). For continuous glides (BECOMES), the per-window peaks
+    will keep moving and no plateau will satisfy the min_plateau_ms gate,
+    so this returns an empty list -- which is the correct distinguisher
+    between a step function and a glide.
+    """
+    win_n = int(SAMPLE_RATE * window_ms / 1000)
+    hop_n = int(SAMPLE_RATE * hop_ms / 1000)
+    if len(samples) < win_n:
+        return []
+
+    window_peaks: List[Tuple[float, float]] = []
+    for start in range(0, len(samples) - win_n + 1, hop_n):
+        chunk = samples[start:start + win_n]
+        peaks = spectral_peaks(chunk, n_peaks=1, rel_thresh=0.30)
+        if peaks:
+            freq = peaks[0][0]
+        else:
+            freq = 0.0
+        center_t = (start + win_n / 2) / SAMPLE_RATE
+        window_peaks.append((center_t, freq))
+
+    if not window_peaks:
+        return []
+
+    plateaus: List[Tuple[float, float, float]] = []
+    cur_freq = window_peaks[0][1]
+    cur_start = max(0.0, window_peaks[0][0] - (window_ms / 2000))
+    cur_end = window_peaks[0][0]
+    cur_freqs: List[float] = [cur_freq] if cur_freq > 0 else []
+
+    for t, f in window_peaks[1:]:
+        if cur_freq > 0 and f > 0 and abs(f - cur_freq) / cur_freq < freq_tol_pct:
+            cur_end = t
+            cur_freqs.append(f)
+        else:
+            if (cur_end - cur_start) * 1000 >= min_plateau_ms and cur_freqs:
+                plateaus.append((round(cur_start, 3),
+                                  round(cur_end, 3),
+                                  round(float(np.mean(cur_freqs)), 1)))
+            cur_start = t
+            cur_freq = f
+            cur_end = t
+            cur_freqs = [f] if f > 0 else []
+
+    if (cur_end - cur_start) * 1000 >= min_plateau_ms and cur_freqs:
+        plateaus.append((round(cur_start, 3),
+                          round(cur_end, 3),
+                          round(float(np.mean(cur_freqs)), 1)))
+
+    return plateaus
+
+
 # ---------------------------------------------------------------------------
 # Top-level analyzer - produces a vocabulary-free description
 # ---------------------------------------------------------------------------

@@ -1,0 +1,76 @@
+{
+  "schema": "continua-codec-demo/1",
+  "config_label": "baseline",
+  "payload_text": "continua",
+  "payload_hex": "636f6e74696e7561",
+  "payload_bits": 64,
+  "raw_bits_per_sec": 1.9076005961251865,
+  "settings": [
+    {
+      "slug": "clean",
+      "label": "Clean (no noise added)",
+      "noise": "none",
+      "snr_db": null,
+      "wav": "/codec/demo/clean.wav",
+      "duration_s": 33.55,
+      "avg_ber": 0.0,
+      "decoded": "continua",
+      "decoded_hex": "636f6e74696e7561"
+    },
+    {
+      "slug": "white_20db",
+      "label": "White noise, +20 dB SNR (well above cliff)",
+      "noise": "white",
+      "snr_db": 20.0,
+      "wav": "/codec/demo/white_20db.wav",
+      "duration_s": 33.55,
+      "avg_ber": 0.0,
+      "decoded": "continua",
+      "decoded_hex": "636f6e74696e7561"
+    },
+    {
+      "slug": "white_10db",
+      "label": "White noise, +10 dB SNR (below the cliff)",
+      "noise": "white",
+      "snr_db": 10.0,
+      "wav": "/codec/demo/white_10db.wav",
+      "duration_s": 33.55,
+      "avg_ber": 0.5625,
+      "decoded": "........",
+      "decoded_hex": "a000000000000000"
+    },
+    {
+      "slug": "reverb_10db",
+      "label": "Small-room reverb, +10 dB direct-to-reverb",
+      "noise": "reverb",
+      "snr_db": 10.0,
+      "wav": "/codec/demo/reverb_10db.wav",
+      "duration_s": 33.55,
+      "avg_ber": 0.0,
+      "decoded": "continua",
+      "decoded_hex": "636f6e74696e7561"
+    },
+    {
+      "slug": "reverb_0db",
+      "label": "Small-room reverb, 0 dB direct-to-reverb",
+      "noise": "reverb",
+      "snr_db": 0.0,
+      "wav": "/codec/demo/reverb_0db.wav",
+      "duration_s": 33.55,
+      "avg_ber": 0.0,
+      "decoded": "continua",
+      "decoded_hex": "636f6e74696e7561"
+    },
+    {
+      "slug": "reverb_n10",
+      "label": "Small-room reverb, -10 dB direct-to-reverb",
+      "noise": "reverb",
+      "snr_db": -10.0,
+      "wav": "/codec/demo/reverb_n10.wav",
+      "duration_s": 33.55,
+      "avg_ber": 0.07421875,
+      "decoded": ".on.in.a",
+      "decoded_hex": "036f6e14696e1561"
+    }
+  ]
+}

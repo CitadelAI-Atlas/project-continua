@@ -1,0 +1,206 @@
+export const metadata = {
+  title: "AI receiver: math messages over audio | Project Continua",
+};
+
+# AI receiver: math messages over audio
+
+**Period:** May 2026
+**Status:** v0 single-receiver run complete; cross-model extension queued
+
+## The question this experiment asks
+
+The codec and bandwidth pages measured channel capacity in bits per
+second. This experiment asks a different question: when the payload is
+a math expression rather than arbitrary bytes, and the receiver is told
+in advance that math expressions are coming and given the vocabulary
+to decode them, how does each encoding compare?
+
+Seven v4 expressions (including the new v4.8 TRANSFORMATION primitive)
+were sent through two encoding paths, at three channel conditions each.
+The receiver was given the v4 vocabulary specification and only the
+audio's structured observations (for the math-native path) or the
+recovered byte sequence (for the OFDM path).
+
+## What v0 measures and what it doesn't
+
+This is **single-receiver v0**: the AI in this session acted as the
+receiver. Future work, blocked on Anthropic API key configuration, is
+to run the same prompts on Claude Opus, Sonnet, and Haiku in parallel,
+the way the v4.4 / v4.5 work did, and compare cross-model. The
+single-receiver result is suggestive but not the cross-model finding
+the project ultimately wants.
+
+The receiver's discipline: for math-native decoding, use only the
+analyzer's vocabulary-free observations (pulse counts, spectral peaks,
+block structure, periodicity, recovered integer ratios) and the v4
+vocabulary specification. Do not consult the encoder source. The
+analyzer is designed for exactly this honesty by docstring-level
+contract (`continua/v4/analyzer.py`).
+
+## The test set
+
+Seven expressions of increasing structural complexity:
+
+<div className="my-6 overflow-x-auto">
+  <table className="w-full text-sm border border-zinc-200 dark:border-zinc-800 rounded">
+    <thead className="bg-zinc-50 dark:bg-zinc-900 text-left">
+      <tr><th className="px-3 py-2 font-semibold">Slug</th><th className="px-3 py-2 font-semibold">Expression</th></tr>
+    </thead>
+    <tbody>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2 font-mono">COUNT_3</td><td className="px-3 py-2 font-mono">COUNT(3)</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2 font-mono">RATIO_5_4</td><td className="px-3 py-2 font-mono">RATIO(5, 4)</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2 font-mono">AND_C2_R3_2</td><td className="px-3 py-2 font-mono">AND(COUNT(2), RATIO(3, 2))</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2 font-mono">SEQ_C1_2_3_4</td><td className="px-3 py-2 font-mono">SEQUENCE(COUNT(1), COUNT(2), COUNT(3), COUNT(4))</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2 font-mono">PERIOD_0p5_C3</td><td className="px-3 py-2 font-mono">PERIOD(0.5s, COUNT(3))</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2 font-mono">IMPLIES_3</td><td className="px-3 py-2 font-mono">IMPLIES_MULTI([C1=&gt;C2, C2=&gt;C3, C3=&gt;C4])</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2 font-mono">TRANSFORMATION_4</td><td className="px-3 py-2 font-mono">TRANSFORMATION(220, 440, 330, 880)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+Three channel conditions per expression: clean, +10 dB white noise,
+0 dB direct-to-reverb. That's 21 trials per encoding path.
+
+## Encoding paths
+
+**Math-native (v4):** each expression renders directly to its
+characteristic audio (pulses for COUNT, simultaneous tones for RATIO,
+sequential blocks for SEQUENCE, paired blocks for IMPLIES_MULTI, and
+so on). The receiver decodes by reading the audio's structural
+observations and mapping them back to the vocabulary.
+
+**OFDM (with vocabulary lookup):** each expression is tokenized to a
+small byte sequence (operator opcodes, opening / closing braces,
+integer literals) and the byte sequence is sent through the BPSK OFDM
+codec described in [Acoustic bandwidth: a baseline](/research/bandwidth).
+The receiver recovers bytes deterministically, then parses them back
+into an expression.
+
+## Results
+
+export const _ok = "text-green-600 dark:text-green-400 font-semibold";
+export const _fail = "text-red-600 dark:text-red-400 font-semibold";
+export const _partial = "text-amber-600 dark:text-amber-400 font-semibold";
+
+<div className="my-6 overflow-x-auto">
+  <table className="w-full text-sm border border-zinc-200 dark:border-zinc-800 rounded">
+    <thead className="bg-zinc-50 dark:bg-zinc-900 text-left">
+      <tr>
+        <th className="px-3 py-2 font-semibold">Expression</th>
+        <th className="px-3 py-2 font-semibold">mn clean</th>
+        <th className="px-3 py-2 font-semibold">mn +10 dB white</th>
+        <th className="px-3 py-2 font-semibold">mn 0 dB reverb</th>
+        <th className="px-3 py-2 font-semibold">OFDM clean</th>
+        <th className="px-3 py-2 font-semibold">OFDM +10 dB white</th>
+        <th className="px-3 py-2 font-semibold">OFDM 0 dB reverb</th>
+      </tr>
+    </thead>
+    <tbody className="font-mono text-xs">
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">COUNT(3)</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">RATIO(5,4)</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">AND(C2,R3:2)</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_fail}`}>fail</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">SEQUENCE(C1..C4)</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK*</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_fail}`}>fail</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">PERIOD(0.5,C3)</td><td className={`px-3 py-2 ${_ok}`}>OK (v4.7)</td><td className={`px-3 py-2 ${_ok}`}>OK (v4.7)</td><td className={`px-3 py-2 ${_ok}`}>OK (v4.7)</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_fail}`}>fail</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">IMPLIES_MULTI(3)</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_fail}`}>fail</td></tr>
+      <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">TRANSFORMATION(4)</td><td className={`px-3 py-2 ${_ok}`}>OK (v4.9)</td><td className={`px-3 py-2 ${_ok}`}>OK (v4.9)</td><td className={`px-3 py-2 ${_ok}`}>OK (v4.9)</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_ok}`}>OK</td><td className={`px-3 py-2 ${_fail}`}>fail</td></tr>
+      <tr className="border-t-2 border-zinc-300 dark:border-zinc-700 font-semibold"><td className="px-3 py-2">fully correct</td><td className="px-3 py-2">7/7</td><td className="px-3 py-2">7/7</td><td className="px-3 py-2">7/7</td><td className="px-3 py-2">7/7</td><td className="px-3 py-2">7/7</td><td className="px-3 py-2">2/7</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<small className="text-zinc-600 dark:text-zinc-400">
+*SEQUENCE at white +10 dB: auto-block-segmentation fused into a single block, but per-pulse timing alone let the receiver reconstruct the four sub-counts.
+OK (v4.7) for PERIOD: encoder fix landed and the receiver now sees the full 12 pulses, 4 cycles of 3, instead of the truncated 4 single pulses pre-v4.7.
+OK (v4.9) for TRANSFORMATION: analyzer extension landed (spectrogram_steps), the receiver now recovers the full ordered list of plateau frequencies across all three noise conditions. Pre-v4.9, the analyzer's aggregated-across-the-whole-clip spectrum could identify the frequency set but not the order; partial decode was the honest reading then.
+</small>
+
+## What this experiment surfaced
+
+**The math-native receiver is reverb-friendly even on complex
+compositions.** All six expressions decoded fully at 0 dB
+direct-to-reverb (with PERIOD's caveat below). This matches the
+spectral-vs-phase finding from the codec page: reverb smears phase
+without raising the broadband noise floor, and the analyzer's
+spectral and block-onset detection both survive reverb.
+
+**OFDM is throughput-dominant but reverb-fragile end-to-end.** Above
+the noise floor, OFDM transmitted each expression in 10x to 17x less
+audio time than the math-native path. At reverb 0 dB, only the very
+shortest expressions (COUNT, RATIO) survived; longer messages
+accumulated enough bit errors to break the token parser. This is the
+codec page's reverb-fragility finding made visible in math-expression
+terms: a single corrupted byte can derail an entire expression tree
+even if 90% of the bits are correct.
+
+**The encoder's PERIOD render WAS lossy in a way the receiver could not
+recover; fixed in v4.7.** `render_period` previously truncated the
+inner content to 70% of the period to keep the structure observable,
+which silently dropped data for any content too long for the requested
+period. For `PERIOD(0.5, COUNT(3))` the inner content is ~0.95s of
+audio, was clipped to roughly one pulse, and the receiver saw four
+equally-spaced single pulses at 0.5s interval. v4.7 (shipped while
+writing this page) extends the period to fit the content and prints a
+stderr warning to the caller. The receiver now sees all 12 pulses, 4
+cycles of 3 pulses each, with an actual period of 1.36s. The encoder
+no longer loses information silently; the caller is told the rendered
+period differs from the requested one. This is the kind of round-trip
+integrity bug that the AI receiver experiment was designed to surface
+and is a clean example of the experiment paying for itself.
+
+**The OFDM token serialization is brittle to single-byte errors.** The
+parser is a recursive descent that bails on the first unexpected
+token. A more error-tolerant serialization (per-token Hamming code,
+or a self-synchronizing format) would let OFDM degrade gracefully
+instead of failing wholesale on partial decodes.
+
+**The v4 analyzer needed time-windowed spectral analysis for
+TRANSFORMATION; v4.9 added it.** Adding TRANSFORMATION to the test set
+originally surfaced that the analyzer's `spectral_peaks` aggregates
+across the whole clip. For a primitive whose meaning IS the ordered
+sequence of frequencies, that aggregation lost the message and only
+a partial decode was honest. The v4.9 fix added `spectrogram_steps`
+to `continua/v4/analyzer.py`: a sliding 100ms window picks the
+dominant peak per window, consecutive windows whose peaks land
+within 2.5% of each other are grouped into plateaus, and plateaus
+lasting at least 200ms are returned in time order with start, end,
+and mean frequency. The receiver now recovers all four plateaus of
+TRANSFORMATION(220, 440, 330, 880) in the correct order with the
+correct frequencies (within 1-2 Hz of the encoded values) across all
+three noise conditions, including 0 dB reverb. As a bonus, the same
+function distinguishes a TRANSFORMATION from a BECOMES: a continuous
+glide produces no stable plateaus (each window's dominant peak is
+moving), so the function returns an empty list. The encoder side was
+already correct; this round of work fixed the receiver side.
+
+## What the cross-model run would tell us
+
+Three additions are blocked on having the Anthropic SDK and an API key
+available in the environment:
+
+- **Cross-model agreement on math-native decode.** Where the analyzer
+  observations are clean, do Opus, Sonnet, and Haiku all map to the
+  same expression? Earlier v4.4 / v4.5 work established that the
+  cross-model-stable primitives are COUNT, RATIO, BECOMES, AND,
+  PERIOD, IMPLIES_MULTI, FUNCTION_MULTI. This experiment would extend
+  that to multi-primitive compositions.
+- **Cross-model disagreement modes.** Where one model decodes and
+  another does not, what does the failing model say? Does it produce
+  a structurally similar but content-wrong answer, or does it refuse?
+- **Quantitative receiver-capability axis.** With cross-model data we
+  could quote a real "what fraction of math expressions are
+  cross-model decodable at SNR X" number, which is the most
+  load-bearing number the project would want.
+
+To unblock: set `ANTHROPIC_API_KEY` in the environment, install the
+`anthropic` Python SDK, and re-run the experiment script with a
+cross-model receiver wrapper.
+
+## Source
+
+- Experiment: `scripts/ai_receiver_experiment.py`
+- Math-native encoder: `continua/v4/encoder.py`
+- Math-native analyzer (vocabulary-free observations): `continua/v4/analyzer.py`
+- OFDM codec: `continua/codec_ofdm.py`
+- Raw results: `private/data/ai_receiver_<UTC>.json`
+- All code in the public repository at
+  [github.com/CitadelAI-Atlas/project-continua](https://github.com/CitadelAI-Atlas/project-continua).

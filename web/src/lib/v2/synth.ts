@@ -12,7 +12,12 @@ function makeContext(): AudioContext {
   }).AudioContext ?? (window as unknown as {
     webkitAudioContext: typeof AudioContext;
   }).webkitAudioContext;
-  return new AC();
+  const ctx = new AC();
+  // iOS Safari starts AudioContexts suspended; resume() inside the gesture
+  // handler that called this is required for any audio to play. No-op on
+  // desktop browsers.
+  void ctx.resume().catch(() => undefined);
+  return ctx;
 }
 
 function applyEnvelope(
