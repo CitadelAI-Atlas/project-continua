@@ -63,19 +63,17 @@ python3 scripts/ofdm_benchmark.py --trials 16
 python3 scripts/codec_bakeoff.py --trials 12
 ```
 
-Each benchmark writes per-cell JSON results to `private/data/` (gitignored).
-The public site embeds chart images rendered from those results by
-`scripts/codec_bakeoff_charts.py`.
+Each benchmark writes per-cell JSON results to a local gitignored
+output directory. The public site embeds chart images rendered from
+those results by `scripts/codec_bakeoff_charts.py`.
 
-## Internal records
+## A note on this repository
 
-The working copy of this repository carries additional local-only files
-(session handoff notes, methodology drafts, per-iteration raw results,
-pre-registration documents) that are intentionally gitignored under
-`private/`. The public artifacts are the website plus the code in this
-repo; internal records stay local to keep the public face curated without
-hiding the underlying mechanics, which are all reproducible from the code
-here.
+The public artifacts are the website plus the code in this repo. The
+working copy on the author's machine also carries some local-only
+files (session notes, draft documents, raw per-iteration data) that
+are intentionally kept out of version control. All results published
+on the live site are reproducible from the code that is here.
 
 ## Lineage
 
