@@ -149,9 +149,24 @@ and is a clean example of the experiment paying for itself.
 
 **The OFDM token serialization is brittle to single-byte errors.** The
 parser is a recursive descent that bails on the first unexpected
-token. A more error-tolerant serialization (per-token Hamming code,
+token. A more error-tolerant serialization (interleaved Hamming code,
 or a self-synchronizing format) would let OFDM degrade gracefully
 instead of failing wholesale on partial decodes.
+
+**Naive Hamming(7,4) on the byte stream regressed reverb decode.**
+The obvious first attempt at fixing the brittleness, wrapping the
+payload bytes in a Hamming(7,4) layer before OFDM, made things worse:
+reverb 0 dB OFDM dropped from 2/7 to 1/7. Two mechanisms in play.
+First, the 7/4 expansion lengthens the message by 75 percent, which
+lets more reverb tail accumulate per message. Second, reverb tends to
+produce burst errors (multiple bits flipped per 7-bit codeword), and
+Hamming's single-bit correction window then mis-corrects rather than
+recovers, sometimes converting one bit error into two. The honest
+fix needs interleaving (spread bits from each codeword across time
+so a burst hits multiple codewords by one bit each) plus a stronger
+code (Reed-Solomon or convolutional with Viterbi). For this iteration
+we reverted to bare OFDM and recorded the attempt as a negative
+result.
 
 **The v4 analyzer needed time-windowed spectral analysis for
 TRANSFORMATION; v4.9 added it.** Adding TRANSFORMATION to the test set

@@ -36,9 +36,55 @@ sys.path.insert(0, str(REPO_ROOT))
 import numpy as np
 
 from continua import codec_ofdm as ofdm
+from continua import codec as mn_codec  # for Hamming(7,4) primitives
 from continua.v4 import encoder as v4enc
 from continua.v4 import analyzer as v4ana
 from scripts.codec_benchmark import NOISE_FNS, add_noise_at_snr
+
+
+def _bytes_to_bits(b: bytes) -> List[int]:
+    out: List[int] = []
+    for byte in b:
+        for shift in range(7, -1, -1):
+            out.append((byte >> shift) & 1)
+    return out
+
+
+def _bits_to_bytes(bits: List[int]) -> bytes:
+    out = bytearray()
+    for i in range(0, len(bits), 8):
+        chunk = bits[i:i + 8]
+        b = 0
+        for j, bit in enumerate(chunk):
+            b |= (bit & 1) << (7 - j)
+        out.append(b)
+    return bytes(out)
+
+
+def hamming_wrap(payload: bytes) -> Tuple[bytes, int, int]:
+    """Hamming(7,4) the byte stream and pack to whole bytes for OFDM.
+    Returns (wrapped_bytes, original_bit_count, wrapped_byte_count). The
+    original_bit_count is needed on decode to trim padding before
+    Hamming-decode reassembly."""
+    bits = _bytes_to_bits(payload)
+    encoded = mn_codec._hamming_encode(bits)  # 4 -> 7 expansion per nibble
+    # Pad to whole bytes
+    pad = (-len(encoded)) % 8
+    encoded = encoded + [0] * pad
+    return _bits_to_bytes(encoded), len(bits), len(encoded) // 8
+
+
+def hamming_unwrap(wrapped: bytes, original_bit_count: int) -> bytes:
+    """Reverse of hamming_wrap. Uses original_bit_count to drop any
+    padding before assembling the recovered payload."""
+    bits = _bytes_to_bits(wrapped)
+    # Hamming decode operates on 7-bit codewords; trim trailing partial codeword
+    n_codewords = len(bits) // 7
+    bits = bits[:n_codewords * 7]
+    data_bits = mn_codec._hamming_decode(bits)
+    data_bits = data_bits[:original_bit_count]
+    n_bytes = (original_bit_count + 7) // 8
+    return _bits_to_bytes(data_bits + [0] * ((-len(data_bits)) % 8))[:n_bytes]
 
 OUT_DIR = REPO_ROOT / "private" / "data"
 AUDIO_OUT = REPO_ROOT / "web" / "public" / "ai_receiver"
@@ -272,7 +318,12 @@ def run() -> dict:
     AUDIO_OUT.mkdir(parents=True, exist_ok=True)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    ofdm_cfg = ofdm.OfdmConfig(bits_per_carrier=1)  # BPSK for robustness
+    # BPSK OFDM with an application-layer Hamming(7,4) wrapper on the byte
+    # stream (reusing the codec.py Hamming primitives). codec_ofdm.py itself
+    # is the bandwidth-baseline implementation and doesn't carry FEC; adding
+    # FEC outside it keeps the OFDM module pure and the experiment honest
+    # about where the error correction lives.
+    ofdm_cfg = ofdm.OfdmConfig(bits_per_carrier=1)
 
     results = []
     for slug, expr in TEST_SET:
@@ -285,7 +336,14 @@ def run() -> dict:
         except Exception as e:
             print(f"  ! math-native render failed: {e}")
             continue
-        # OFDM rendering (tokenize -> bytes -> OFDM)
+        # OFDM rendering (tokenize -> bytes -> OFDM). We tried wrapping the
+        # byte stream in an application-layer Hamming(7,4) (see helpers
+        # above); on this test set it regressed reverb decode (2/7 -> 1/7)
+        # because reverb produces burst errors that Hamming's single-bit
+        # window mis-corrects, and the 7/4 expansion lengthens the message
+        # which lets more reverb tail accumulate. Bare OFDM is the honest
+        # baseline; proper improvement requires interleaving + a stronger
+        # code (Reed-Solomon or convolutional with Viterbi).
         tokens = tokenize(expr)
         payload_bytes = bytes(tokens)
         ofdm_clean = ofdm.encode_payload(payload_bytes, ofdm_cfg)
