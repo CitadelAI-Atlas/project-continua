@@ -1,6 +1,13 @@
 // Most-recent first. New versions land at the TOP of this list.
 const outputs = [
   {
+    href: "/research/perception",
+    title: "Probe 1: Perception study (in progress)",
+    period: "May 2026, ongoing",
+    blurb:
+      "Three-channel matched-trio study (math-structured audio vs matched plain text vs matched synthesized speech) on a six-primitive subset, plus a parallel set of one-on-one interviews. The first honest measurement of whether the perceptual channel the project exists to test is reachable. Results land here when Phase 4 publishes.",
+  },
+  {
     href: "/research/decode-experiment",
     title: "AI receiver: math messages over audio",
     period: "May 2026",
@@ -70,9 +77,11 @@ export default function ResearchIndex() {
     <div>
       <h1 className="text-4xl font-bold mb-4">Research</h1>
       <p className="text-zinc-700 dark:text-zinc-300 mb-6">
-        Each output below describes a step that contributed to where the
-        project is today. These are living documents: they get edited as the
-        understanding sharpens, so the path stays current. Most recent at the
+        The project is organized as a sequence of small probes plus the
+        history of work that led to them. Each probe writes up its result
+        regardless of outcome; each older entry describes a step that
+        contributed to where things are now. These are living documents:
+        they get edited as the understanding sharpens. Most recent at the
         top.
       </p>
       <div className="space-y-3">

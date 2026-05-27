@@ -1,0 +1,127 @@
+export const metadata = {
+  title: "Probe 1: Perception study | Project Continua",
+};
+
+# Probe 1: Perception study (in progress)
+
+**Period:** May 2026, ongoing
+**Status:** design and instruments shipped; recruitment opens Week 4
+
+## What this probe asks
+
+The project rests on a claim it has not yet measured: that humans can
+extract more context from structured sound than from text or speech of
+the same content. Music carries feeling that lyrics alone do not. A
+court reporter writes through chords rather than letters because
+simultaneity is the bandwidth. Whether engineered math-native audio can
+make that wider channel reachable for everyday communication with
+machines is what the project exists to find out.
+
+Probe 1 is the first measurement. It is small on purpose. It compares
+math-structured audio against matched plain text and matched
+synthesized speech on the same content, with a parallel set of in-depth
+interviews on a smaller group. A null result is a real result, and the
+next probe&apos;s design depends on what this one finds.
+
+## How the study is structured
+
+Two arms.
+
+### Main study: three-channel matched-trio
+
+Six math-native v4 primitives, each presented in three matched
+conditions per listener:
+
+1. **Audio**: the rendered v4 expression as math-native audio.
+2. **Text**: the plain-English description of the same content
+   shown on screen.
+3. **Speech**: the same plain-English description read by a
+   synthesized voice.
+
+Eighteen trials per session (six primitives across three conditions),
+randomized order under the constraint that no two consecutive trials
+share a primitive. After each trial the listener writes a short
+free-response, rates the trial on three Likert scales (valence,
+intensity, evocativeness), and picks the best-matching structural
+description from four options.
+
+Target sample is twelve to fifteen listeners, with a deliberately
+recruited subgroup of musicians and tonal-language native speakers
+because trained perception is where the channel, if it exists, would
+show up most cleanly.
+
+### Interview track: in-depth phenomenology
+
+A separate three-person arm. Sixty-minute recorded conversations on the
+audio condition alone, conducted using micro-phenomenological
+elicitation. The questions are slow, open-ended, in the participant&apos;s
+own words. No pre-defined categories. The interview track surfaces
+themes that the structured main study cannot ask about because it does
+not know to ask.
+
+## What the study will report
+
+For each primitive in each condition, the analysis reports:
+
+- Whether the audio response surfaces structural content that the text
+  and speech responses for the same primitive do not.
+- The within-listener Likert differences across the three conditions.
+- The count of audio-only content elements per listener.
+- Whether the expert subgroup differs from novice listeners by a
+  meaningful effect size.
+- Emergent themes from the three interview transcripts that appear in
+  two or more participants.
+
+The decision gate is pre-registered. If no audio-specific effects
+surface anywhere across the main study, and the interview track turns
+up no convergent themes specific to the audio condition, the project
+suspends new engineering development indefinitely. The threshold is
+explicit so the result does not get talked around.
+
+## Why two arms
+
+The single-condition main study is psychophysics: structured prompts,
+forced-choice options, Likert scales. It detects measurable behavioral
+signal across listeners. The interview track is phenomenology: slow
+description in a listener&apos;s own words, no pre-defined categories,
+inductive coding. It surfaces what the structured study cannot ask.
+Each arm answers a different kind of question; the combination is
+stronger than either alone.
+
+## Why these six primitives
+
+The six are the cross-model-stable primitives that cover all distinct
+types in the current v4 vocabulary:
+
+- **`COUNT(3)`**: discrete counting.
+- **`RATIO(3, 2)`**: simultaneous integer ratio (a perfect fifth).
+- **`BECOMES(220, 440)`**: continuous glide, one octave rise.
+- **`PERIOD(0.5, COUNT(3))`**: composed periodic structure.
+- **`AND(COUNT(4), RATIO(3, 2))`**: superposition of pulse and
+  chord.
+- **`TRANSFORMATION(220, 440, 330, 880)`**: discrete step
+  sequence.
+
+Four longer primitives from the current catalog
+(`COUNT(7)`, `RATIO(5, 4)`, `IMPLIES_MULTI`, `FUNCTION_MULTI`) are
+deferred to the next probe. They are not abandoned, just too long for a
+three-condition session that fits a thirty-minute attention budget.
+
+## Honest framing of what one probe can do
+
+Probe 1 cannot settle the moonshot. It tests sparse atomic primitives
+in controlled conditions. It cannot say anything about richer timbral
+audio, longer composed sequences, machine-to-human contextual transfer,
+or whether the effect (if any) is generic to structured sound or
+specific to math-native structure. Those questions belong to later
+probes. This probe is the first cheap test whose result determines
+whether the probe sequence is worth continuing.
+
+## Where the artifacts live
+
+Code and rendered audio are in the public repository at
+[github.com/CitadelAI-Atlas/project-continua](https://github.com/CitadelAI-Atlas/project-continua).
+Pre-registration, codebook, instruments, consent text, and the
+interview protocol are all on disk; the in-progress design will be
+linked from this page when recruitment opens. Results will land here in
+August 2026 when Phase 4 publishes.
